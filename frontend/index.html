@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Momento — Фотостудия</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="container">
+      <h1 class="logo">Momento</h1>
+      <nav class="nav">
+        <a href="#services">Услуги</a>
+        <a href="#booking">Запись</a>
+        <a href="#reviews">Отзывы</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h2>Запечатлейте лучшие моменты</h2>
+        <p>Профессиональная фотостудия в вашем городе</p>
+        <a href="#booking" class="btn">Записаться</a>
+      </div>
+    </section>
+
+    <section id="services" class="section">
+      <div class="container">
+        <h2 class="section-title">Наши услуги</h2>
+        <div id="services-list" class="services-grid">
+          <p>Загрузка...</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="booking" class="section section--gray">
+      <div class="container">
+        <h2 class="section-title">Запись на съёмку</h2>
+        <form id="booking-form" class="form">
+          <input type="text"   id="client_name"  placeholder="Ваше имя"    required />
+          <input type="tel"    id="client_phone" placeholder="+7 (___) ___-__-__" required />
+          <select id="service" required>
+            <option value="">Выберите услугу</option>
+          </select>
+          <button type="submit" class="btn">Отправить заявку</button>
+          <p id="booking-msg" class="form-msg"></p>
+        </form>
+      </div>
+    </section>
+
+    <section id="reviews" class="section">
+      <div class="container">
+        <h2 class="section-title">Отзывы</h2>
+        <div id="reviews-list" class="reviews-grid">
+          <p>Загрузка...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2024 Momento. Все права защищены.</p>
+    </div>
+  </footer>
+
+  <script src="/js/main.js"></script>
+</body>
+</html>

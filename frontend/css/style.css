@@ -1,0 +1,142 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --color-bg:        #0e0e0e;
+  --color-surface:   #1a1a1a;
+  --color-accent:    #c9a96e;
+  --color-text:      #f0ece4;
+  --color-muted:     #888;
+  --radius:          8px;
+  --transition:      0.25s ease;
+}
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Header */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(14, 14, 14, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #222;
+  padding: 14px 0;
+}
+.header .container { display: flex; align-items: center; justify-content: space-between; }
+.logo { font-size: 1.6rem; font-weight: 700; letter-spacing: 2px; color: var(--color-accent); }
+.nav a {
+  color: var(--color-text);
+  text-decoration: none;
+  margin-left: 24px;
+  font-size: 0.95rem;
+  transition: color var(--transition);
+}
+.nav a:hover { color: var(--color-accent); }
+
+/* Hero */
+.hero {
+  text-align: center;
+  padding: 120px 20px 100px;
+  background: linear-gradient(160deg, #1a1200 0%, var(--color-bg) 60%);
+}
+.hero h2 { font-size: 2.8rem; margin-bottom: 16px; }
+.hero p  { font-size: 1.2rem; color: var(--color-muted); margin-bottom: 36px; }
+
+/* Button */
+.btn {
+  display: inline-block;
+  background: var(--color-accent);
+  color: #0e0e0e;
+  font-weight: 700;
+  padding: 12px 32px;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: opacity var(--transition);
+}
+.btn:hover { opacity: 0.85; }
+
+/* Sections */
+.section { padding: 80px 0; }
+.section--gray { background: var(--color-surface); }
+.section-title { font-size: 2rem; margin-bottom: 40px; text-align: center; }
+
+/* Services grid */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 24px;
+}
+.service-card {
+  background: var(--color-surface);
+  border: 1px solid #2a2a2a;
+  border-radius: var(--radius);
+  padding: 28px 24px;
+  transition: border-color var(--transition);
+}
+.section--gray .service-card { background: var(--color-bg); }
+.service-card:hover { border-color: var(--color-accent); }
+.service-card h3 { font-size: 1.1rem; margin-bottom: 10px; }
+.service-card .price { color: var(--color-accent); font-size: 1.3rem; font-weight: 700; }
+.service-card .duration { color: var(--color-muted); font-size: 0.85rem; margin-top: 6px; }
+
+/* Booking form */
+.form {
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.form input, .form select {
+  background: var(--color-bg);
+  border: 1px solid #333;
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  color: var(--color-text);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color var(--transition);
+}
+.form input:focus, .form select:focus { border-color: var(--color-accent); }
+.form select option { background: var(--color-bg); }
+.form-msg { text-align: center; font-size: 0.9rem; min-height: 20px; }
+.form-msg.success { color: #6fcf97; }
+.form-msg.error   { color: #eb5757; }
+
+/* Reviews grid */
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}
+.review-card {
+  background: var(--color-surface);
+  border: 1px solid #2a2a2a;
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.review-card .stars { color: var(--color-accent); font-size: 1.2rem; margin-bottom: 10px; }
+.review-card .author { color: var(--color-muted); font-size: 0.85rem; margin-top: 12px; }
+
+/* Footer */
+.footer {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  border-top: 1px solid #1e1e1e;
+}
