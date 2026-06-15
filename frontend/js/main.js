@@ -298,37 +298,79 @@ async function loadServices() {
   }
 }
 
-// ── Team ──────────────────────────────────────────────────────────────
+// ── Team 3D carousel ──────────────────────────────────────────────────
 const ROLE_LABELS = { photographer: 'Фотограф', manager: 'Менеджер', admin: 'Администратор' };
 
+let teamCards = [];
+let teamActive = 0;
+
+function initials(name) {
+  return name.trim().split(/\s+/).map(w => w[0]).slice(0, 2).join('').toUpperCase();
+}
+
 async function loadTeam() {
-  const scroll = document.getElementById('team-scroll');
+  const carousel = document.getElementById('team-carousel');
   try {
     const team = await apiFetch('/team');
-    if (!team.length) { scroll.innerHTML = '<p class="loading-text">Команда скоро появится</p>'; return; }
-    scroll.innerHTML = team.map(m => `
-      <div class="team-card">
-        <img class="team-avatar"
-          src="https://ui-avatars.com/api/?name=${encodeURIComponent(m.full_name)}&background=4d6bfe&color=fff&size=120&rounded=true"
-          alt="${esc(m.full_name)}" />
-        <div class="team-name">${esc(m.full_name)}</div>
-        <span class="team-role">${esc(ROLE_LABELS[m.employee_type] || m.employee_type || 'Сотрудник')}</span>
-      </div>
-    `).join('');
-    initTeamWheel();
+    if (!team.length) { carousel.innerHTML = '<p class="loading-text">Команда скоро появится</p>'; return; }
+
+    carousel.innerHTML = '';
+    teamCards = team.map((m, i) => {
+      const card = document.createElement('div');
+      card.className = 'carousel-card';
+      card.innerHTML = `
+        <div class="carousel-avatar">${esc(initials(m.full_name))}</div>
+        <div class="carousel-name">${esc(m.full_name)}</div>
+        <span class="carousel-role">${esc(ROLE_LABELS[m.employee_type] || m.employee_type || 'Сотрудник')}</span>
+      `;
+      card.addEventListener('click', () => { teamActive = i; layoutCarousel(); });
+      carousel.appendChild(card);
+      return card;
+    });
+
+    teamActive = Math.floor(team.length / 2);
+    layoutCarousel();
+
+    document.getElementById('team-prev').addEventListener('click', () => moveCarousel(-1));
+    document.getElementById('team-next').addEventListener('click', () => moveCarousel(1));
+    window.addEventListener('resize', layoutCarousel);
   } catch {
-    scroll.innerHTML = '<p class="loading-text">Не удалось загрузить команду</p>';
+    carousel.innerHTML = '<p class="loading-text">Не удалось загрузить команду</p>';
   }
 }
 
-function initTeamWheel() {
-  const el = document.getElementById('team-scroll');
-  el.addEventListener('wheel', e => {
-    if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-      e.preventDefault();
-      el.scrollLeft += e.deltaY * 0.9;
+function carouselSettings() {
+  const w = window.innerWidth;
+  if (w < 640)  return { maxVisible: 1, spacing: 130 };  // 3 cards
+  if (w < 960)  return { maxVisible: 1, spacing: 180 };  // 3 cards, wider
+  return { maxVisible: 2, spacing: 200 };                // 5 cards
+}
+
+function layoutCarousel() {
+  const { maxVisible, spacing } = carouselSettings();
+  teamCards.forEach((card, i) => {
+    const offset = i - teamActive;
+    const abs = Math.abs(offset);
+    if (abs > maxVisible) {
+      card.style.opacity = '0';
+      card.style.pointerEvents = 'none';
+      card.style.zIndex = '0';
+      card.style.transform = `translate(-50%,-50%) translateX(${Math.sign(offset) * (maxVisible + 1) * spacing}px) scale(0.5)`;
+      card.classList.remove('is-center');
+      return;
     }
-  }, { passive: false });
+    const scale = Math.max(0.62, 1 - abs * 0.18);
+    card.style.transform = `translate(-50%,-50%) translateX(${offset * spacing}px) scale(${scale})`;
+    card.style.opacity = abs === 0 ? '1' : String(0.9 - abs * 0.22);
+    card.style.zIndex = String(100 - abs);
+    card.style.pointerEvents = 'auto';
+    card.classList.toggle('is-center', offset === 0);
+  });
+}
+
+function moveCarousel(dir) {
+  teamActive = Math.min(teamCards.length - 1, Math.max(0, teamActive + dir));
+  layoutCarousel();
 }
 
 // ── Gallery (carousel + wheel) ────────────────────────────────────────
