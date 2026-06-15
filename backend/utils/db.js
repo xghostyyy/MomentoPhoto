@@ -68,6 +68,16 @@ function initDb() {
         )
       `);
 
+      database.run(`
+        CREATE TABLE IF NOT EXISTS feedback (
+          id         INTEGER PRIMARY KEY AUTOINCREMENT,
+          name       TEXT NOT NULL,
+          email      TEXT,
+          message    TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+      `);
+
       // Migrations
       const migrations = [
         "ALTER TABLE services ADD COLUMN employee_type TEXT NOT NULL DEFAULT 'photographer'",

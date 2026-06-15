@@ -6,7 +6,8 @@ const Booking = require('../models/Booking');
 const Review = require('../models/Review');
 const Service = require('../models/Service');
 const { authenticate, requireRole, optionalAuth } = require('../middleware/auth');
-const { sendBookingNotification, sendConfirmationToClient } = require('../utils/email');
+const { sendBookingNotification, sendConfirmationToClient, sendFeedbackEmail } = require('../utils/email');
+const Feedback = require('../models/Feedback');
 
 // ── Health check ────────────────────────────────────────────────────
 router.get('/test', (_req, res) => res.json({ status: 'ok' }));
@@ -169,6 +170,52 @@ router.patch('/reviews/:id/publish', authenticate, requireRole('admin'), async (
 router.get('/employees', async (_req, res) => {
   try {
     res.json(await User.findAllEmployees());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── Team (public — same as employees, alias for frontend) ─────────────
+router.get('/team', async (_req, res) => {
+  try {
+    res.json(await User.findAllEmployees());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── Feedback (saves to DB + emails manager) ───────────────────────────
+router.post('/feedback', async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+    if (!name || !message) return res.status(400).json({ error: 'name и message обязательны' });
+
+    const entry = await Feedback.create({ name, email: email || null, message });
+
+    const employees = await User.findAllEmployees({ includeEmail: true });
+    const manager = employees.find(e => e.employee_type === 'manager') || employees[0];
+    sendFeedbackEmail({ name, email, message }, manager?.email).catch(console.error);
+
+    res.status(201).json({ id: entry.id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── Contact (footer form — only emails, no DB) ────────────────────────
+router.post('/contact', async (req, res) => {
+  try {
+    const { name, email, message } = req.body;
+    if (!name || !message) return res.status(400).json({ error: 'name и message обязательны' });
+
+    const employees = await User.findAllEmployees({ includeEmail: true });
+    const manager = employees.find(e => e.employee_type === 'manager') || employees[0];
+    sendFeedbackEmail({ name, email, message }, manager?.email).catch(console.error);
+
+    res.json({ ok: true });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

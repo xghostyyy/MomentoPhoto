@@ -7,22 +7,25 @@
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
   <!-- Auth modal -->
-  <div id="auth-modal" class="modal hidden">
-    <div class="modal-overlay" id="modal-overlay"></div>
+  <div id="auth-modal" class="modal-overlay hidden">
     <div class="modal-box">
-      <button class="modal-close" id="modal-close">&times;</button>
+      <button class="modal-close" id="auth-modal-close">&times;</button>
       <div class="tabs">
         <button class="tab active" data-tab="login">Войти</button>
         <button class="tab" data-tab="register">Регистрация</button>
       </div>
-      <form id="login-form" class="form auth-form">
-        <input type="email"    id="login-email"    placeholder="Email"   required />
-        <input type="password" id="login-password" placeholder="Пароль"  required />
+      <form id="login-form" class="form">
+        <input type="email"    id="login-email"    placeholder="Email"  required />
+        <input type="password" id="login-password" placeholder="Пароль" required />
         <button type="submit" class="btn btn--full">Войти</button>
         <p id="login-msg" class="form-msg"></p>
       </form>
-      <form id="register-form" class="form auth-form hidden">
+      <form id="register-form" class="form hidden">
         <input type="text"     id="reg-name"     placeholder="Ваше имя" required />
         <input type="email"    id="reg-email"    placeholder="Email"     required />
         <input type="password" id="reg-password" placeholder="Пароль"   required />
@@ -32,88 +35,234 @@
     </div>
   </div>
 
-  <header class="header">
-    <div class="container">
-      <h1 class="logo">Momento</h1>
-      <nav class="nav">
+  <!-- Booking modal -->
+  <div id="booking-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <button class="modal-close" id="booking-modal-close">&times;</button>
+      <h3 class="modal-title">Записаться на съёмку</h3>
+      <form id="booking-form" class="form">
+        <input type="text" id="client_name"  placeholder="Ваше имя"           required />
+        <input type="tel"  id="client_phone" placeholder="+7 (999) 000-00-00" required />
+        <select id="service" required>
+          <option value="">Выберите услугу</option>
+        </select>
+        <button type="submit" class="btn btn--full">Отправить заявку</button>
+        <p id="booking-msg" class="form-msg"></p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="header" id="header">
+    <div class="container header-inner">
+      <a href="#home" class="logo">Momento</a>
+      <nav class="nav" id="desktop-nav">
+        <a href="#about">О нас</a>
         <a href="#services">Услуги</a>
-        <a href="#booking">Запись</a>
+        <a href="#team">Команда</a>
+        <a href="#gallery">Галерея</a>
         <a href="#reviews">Отзывы</a>
+        <a href="#feedback">Контакты</a>
       </nav>
       <div class="header-auth">
         <span id="user-greeting" class="user-greeting hidden"></span>
         <a id="dashboard-link" href="/dashboard" class="btn btn--sm btn--outline hidden">Дашборд</a>
-        <button id="auth-btn"   class="btn btn--sm">Войти</button>
-        <button id="logout-btn" class="btn btn--sm btn--outline hidden">Выйти</button>
+        <button id="auth-btn"    class="btn btn--sm">Войти</button>
+        <button id="logout-btn"  class="btn btn--sm btn--outline hidden">Выйти</button>
       </div>
+      <button class="burger" id="burger" aria-label="Меню">&#9776;</button>
     </div>
+    <nav class="mobile-nav hidden" id="mobile-nav">
+      <a href="#about">О нас</a>
+      <a href="#services">Услуги</a>
+      <a href="#team">Команда</a>
+      <a href="#gallery">Галерея</a>
+      <a href="#reviews">Отзывы</a>
+      <a href="#feedback">Контакты</a>
+    </nav>
   </header>
 
-  <main>
-    <section class="hero">
-      <div class="container">
-        <h2>Запечатлейте лучшие моменты</h2>
-        <p>Профессиональная фотостудия в вашем городе</p>
-        <a href="#booking" class="btn">Записаться</a>
+  <!-- Hero -->
+  <section class="hero" id="home">
+    <div class="hero-video">
+      <video autoplay loop muted playsinline>
+        <source src="/video/sample.mp4" type="video/mp4" />
+      </video>
+      <div class="hero-overlay"></div>
+    </div>
+    <div class="container hero-content">
+      <span class="hero-label">Профессиональная фотостудия</span>
+      <h1 class="hero-title">
+        Запечатлейте<br>лучшие<br><span class="hero-accent">моменты</span>
+      </h1>
+      <p class="hero-sub">Фотосессии, аренда студии, свадебная съёмка —<br>мы создаём воспоминания на всю жизнь</p>
+      <div class="hero-actions">
+        <button class="btn btn--hero" id="hero-cta">Записаться</button>
+        <a href="#services" class="btn btn--outline-white">Наши услуги</a>
       </div>
-    </section>
+    </div>
+    <div class="hero-scroll-hint">
+      <span>Прокрутите вниз</span>
+      <div class="scroll-arrow"></div>
+    </div>
+  </section>
 
-    <section id="services" class="section">
-      <div class="container">
-        <h2 class="section-title">Наши услуги</h2>
-        <div id="services-list" class="services-grid"><p>Загрузка...</p></div>
-      </div>
-    </section>
-
-    <section id="booking" class="section section--gray">
-      <div class="container">
-        <h2 class="section-title">Запись на съёмку</h2>
-        <form id="booking-form" class="form">
-          <input type="text" id="client_name"  placeholder="Ваше имя"           required />
-          <input type="tel"  id="client_phone" placeholder="+7 (___) ___-__-__" required />
-          <select id="service" required>
-            <option value="">Выберите услугу</option>
-          </select>
-          <button type="submit" class="btn">Отправить заявку</button>
-          <p id="booking-msg" class="form-msg"></p>
-        </form>
-      </div>
-    </section>
-
-    <section id="reviews" class="section">
-      <div class="container">
-        <h2 class="section-title">Отзывы</h2>
-        <div id="reviews-list" class="reviews-grid"><p>Загрузка...</p></div>
-
-        <!-- Review form — shown only for clients with confirmed bookings -->
-        <div id="review-form-wrap" class="hidden" style="margin-top:48px">
-          <h3 class="section-title" style="font-size:1.4rem">Оставить отзыв</h3>
-          <form id="review-form" class="form">
-            <select id="review-booking" required>
-              <option value="">Выберите запись</option>
-            </select>
-            <div class="star-rating" id="star-rating">
-              <span class="star" data-v="1">★</span>
-              <span class="star" data-v="2">★</span>
-              <span class="star" data-v="3">★</span>
-              <span class="star" data-v="4">★</span>
-              <span class="star" data-v="5">★</span>
-            </div>
-            <input type="hidden" id="review-rating" value="" />
-            <textarea id="review-text" placeholder="Расскажите о вашем опыте..." rows="4"></textarea>
-            <button type="submit" class="btn">Отправить отзыв</button>
-            <p id="review-msg" class="form-msg"></p>
-          </form>
+  <!-- About -->
+  <section class="section reveal" id="about">
+    <div class="container about-grid">
+      <div class="about-text">
+        <span class="section-label">О нас</span>
+        <h2 class="section-title">Мы создаём<br>историю в кадре</h2>
+        <p>Momento — профессиональная фотостудия с командой опытных фотографов и менеджеров. Работаем с 2018 года и воплощаем самые смелые творческие идеи наших клиентов.</p>
+        <p style="margin-top:14px">Наша студия оснащена профессиональным светом, разнообразными фонами и реквизитом для съёмки любого формата.</p>
+        <div style="margin-top:28px">
+          <button class="btn" id="about-cta">Записаться на съёмку</button>
         </div>
       </div>
-    </section>
-  </main>
+      <div class="about-stats">
+        <div class="stat-card"><div class="stat-num">500+</div><div class="stat-label">Довольных клиентов</div></div>
+        <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Лет опыта</div></div>
+        <div class="stat-card"><div class="stat-num">15+</div><div class="stat-label">Форматов съёмки</div></div>
+        <div class="stat-card"><div class="stat-num">98%</div><div class="stat-label">Положительных отзывов</div></div>
+      </div>
+    </div>
+  </section>
 
-  <footer class="footer">
+  <!-- Services -->
+  <section class="section section--gray reveal" id="services">
     <div class="container">
+      <span class="section-label">Что мы предлагаем</span>
+      <h2 class="section-title">Наши услуги</h2>
+      <div id="services-list" class="services-grid">
+        <p class="loading-text">Загрузка...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Team -->
+  <section class="section reveal" id="team">
+    <div class="container">
+      <span class="section-label">Наша команда</span>
+      <h2 class="section-title">Люди, которые работают для вас</h2>
+      <p class="section-sub">Прокрутите колёсиком мыши над блоком для горизонтального скролла</p>
+    </div>
+    <div class="team-scroll-wrap">
+      <div class="team-scroll" id="team-scroll">
+        <p class="loading-text" style="padding:24px">Загрузка...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Gallery -->
+  <section class="section section--gray reveal" id="gallery">
+    <div class="container">
+      <span class="section-label">Работы</span>
+      <h2 class="section-title">Галерея</h2>
+      <div class="gallery-controls">
+        <button class="btn btn--sm" id="gallery-stop">&#9646;&#9646; Стоп</button>
+        <button class="btn btn--sm btn--outline" id="gallery-start">&#9654; Старт</button>
+      </div>
+    </div>
+    <div class="gallery-scroll-wrap">
+      <div class="gallery-scroll" id="gallery-scroll"></div>
+    </div>
+  </section>
+
+  <!-- Reviews -->
+  <section class="section reveal" id="reviews">
+    <div class="container">
+      <span class="section-label">Отзывы</span>
+      <h2 class="section-title">Что говорят клиенты</h2>
+      <div class="slider-wrap">
+        <button class="slider-btn" id="slider-prev">&#8249;</button>
+        <div class="slider-viewport">
+          <div class="slider-track" id="slider-track">
+            <p class="loading-text" style="padding:32px">Загрузка...</p>
+          </div>
+        </div>
+        <button class="slider-btn" id="slider-next">&#8250;</button>
+      </div>
+      <div class="slider-dots" id="slider-dots"></div>
+
+      <!-- Review form — only for clients with confirmed bookings -->
+      <div id="review-form-wrap" class="hidden" style="margin-top:56px">
+        <h3 style="text-align:center;font-size:1.35rem;margin-bottom:24px;font-weight:700">Оставить отзыв</h3>
+        <form id="review-form" class="form form--center">
+          <select id="review-booking" required>
+            <option value="">Выберите вашу запись</option>
+          </select>
+          <div class="star-rating" id="star-rating">
+            <span class="star" data-v="1">&#9733;</span>
+            <span class="star" data-v="2">&#9733;</span>
+            <span class="star" data-v="3">&#9733;</span>
+            <span class="star" data-v="4">&#9733;</span>
+            <span class="star" data-v="5">&#9733;</span>
+          </div>
+          <input type="hidden" id="review-rating" value="" />
+          <textarea id="review-text" placeholder="Расскажите о вашем опыте..." rows="4"></textarea>
+          <button type="submit" class="btn">Отправить отзыв</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feedback -->
+  <section class="section section--blue reveal" id="feedback">
+    <div class="container">
+      <span class="section-label section-label--light">Свяжитесь с нами</span>
+      <h2 class="section-title section-title--light">Остались вопросы?</h2>
+      <p class="section-sub section-sub--light">Заполните форму и мы ответим в течение часа</p>
+      <form id="feedback-form" class="form form--center form--light">
+        <input  type="text"  id="fb-name"    placeholder="Ваше имя"               required />
+        <input  type="email" id="fb-email"   placeholder="Email для ответа"        />
+        <textarea            id="fb-message" placeholder="Ваш вопрос или сообщение..." rows="5" required></textarea>
+        <button type="submit" class="btn btn--white">Отправить сообщение</button>
+        <p id="feedback-msg" class="form-msg"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer" id="contact">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <div class="logo footer-logo">Momento</div>
+        <p>Профессиональная фотостудия.<br>Создаём воспоминания с 2018 года.</p>
+        <div class="footer-contacts">
+          <div>&#128205; Москва, ул. Примерная, 1</div>
+          <div>&#128222; +7 (999) 123-45-67</div>
+          <div>&#9993; info@momento.ru</div>
+        </div>
+      </div>
+      <div class="footer-nav">
+        <h4>Разделы</h4>
+        <a href="#about">О нас</a>
+        <a href="#services">Услуги</a>
+        <a href="#team">Команда</a>
+        <a href="#gallery">Галерея</a>
+        <a href="#reviews">Отзывы</a>
+      </div>
+      <div class="footer-form-wrap">
+        <h4>Написать нам</h4>
+        <form id="contact-form" class="form">
+          <input  type="text"  id="ct-name"    placeholder="Имя"         required />
+          <input  type="email" id="ct-email"   placeholder="Email"       />
+          <textarea            id="ct-message" placeholder="Сообщение..." rows="3" required></textarea>
+          <button type="submit" class="btn btn--sm">Отправить</button>
+          <p id="contact-msg" class="form-msg form-msg--light"></p>
+        </form>
+      </div>
+    </div>
+    <div class="footer-bottom">
       <p>&copy; 2024 Momento. Все права защищены.</p>
     </div>
   </footer>
+
+  <!-- Floating CTA -->
+  <button class="fab" id="fab" title="Записаться">
+    <span class="fab-icon">&#128247;</span>
+    <span class="fab-label">Записаться</span>
+  </button>
 
   <script src="/js/main.js"></script>
 </body>

@@ -54,4 +54,20 @@ async function sendConfirmationToClient(booking) {
   await sendEmail(booking.client_email, `Подтверждение записи — ${booking.service}`, html);
 }
 
-module.exports = { sendEmail, sendBookingNotification, sendConfirmationToClient };
+async function sendFeedbackEmail({ name, email, message }, recipientEmail) {
+  if (!recipientEmail) {
+    console.log('[email] no manager found — feedback not forwarded');
+    return;
+  }
+  const html = `
+    <h2>Новое сообщение с сайта</h2>
+    <table cellpadding="6" style="border-collapse:collapse">
+      <tr><td><b>Имя:</b></td><td>${name}</td></tr>
+      <tr><td><b>Email:</b></td><td>${email || '—'}</td></tr>
+    </table>
+    <p style="margin-top:16px"><b>Сообщение:</b><br>${message.replace(/\n/g, '<br>')}</p>
+  `;
+  await sendEmail(recipientEmail, `Обратная связь от ${name}`, html);
+}
+
+module.exports = { sendEmail, sendBookingNotification, sendConfirmationToClient, sendFeedbackEmail };
