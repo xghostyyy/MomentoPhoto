@@ -50,7 +50,7 @@ const User = {
   findAllEmployees() {
     return new Promise((resolve, reject) => {
       getDb().all(
-        "SELECT id, full_name, employee_type FROM users WHERE role = 'employee'",
+        "SELECT id, email, full_name, employee_type FROM users WHERE role = 'employee'",
         [],
         (err, rows) => {
           if (err) return reject(err);

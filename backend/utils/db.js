@@ -65,8 +65,11 @@ function initDb() {
           text         TEXT,
           is_published INTEGER NOT NULL DEFAULT 0
         )
-      `, (err) => {
-        if (err) return reject(err);
+      `);
+
+      // Migration: add client_email if it doesn't exist yet
+      database.run('ALTER TABLE bookings ADD COLUMN client_email TEXT', (err) => {
+        if (err && !err.message.includes('duplicate column name')) return reject(err);
         console.log('Database tables initialized.');
         resolve(database);
       });

@@ -27,4 +27,13 @@ function requireRole(...roles) {
 
 const verifyToken = authenticate;
 
-module.exports = { authenticate, verifyToken, requireRole };
+function optionalAuth(req, _res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (token) {
+    try { req.user = jwt.verify(token, process.env.JWT_SECRET); } catch { /* ignore */ }
+  }
+  next();
+}
+
+module.exports = { authenticate, verifyToken, requireRole, optionalAuth };

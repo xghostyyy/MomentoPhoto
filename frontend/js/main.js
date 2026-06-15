@@ -193,7 +193,7 @@ document.getElementById('booking-form').addEventListener('submit', async (e) => 
 
   try {
     await apiFetch('/bookings', { method: 'POST', body: JSON.stringify(payload) });
-    msg.textContent = 'Заявка отправлена! Мы свяжемся с вами в ближайшее время.';
+    msg.textContent = 'Заявка принята! Письмо отправлено менеджеру, ожидайте подтверждения.';
     msg.className = 'form-msg success';
     e.target.reset();
   } catch (err) {

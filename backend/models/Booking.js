@@ -1,12 +1,12 @@
 const { getDb } = require('../utils/db');
 
 const Booking = {
-  create({ client_name, client_phone, service, employee_id = null }) {
+  create({ client_name, client_phone, service, employee_id = null, client_email = null }) {
     return new Promise((resolve, reject) => {
       getDb().run(
-        `INSERT INTO bookings (client_name, client_phone, service, employee_id)
-         VALUES (?, ?, ?, ?)`,
-        [client_name, client_phone, service, employee_id],
+        `INSERT INTO bookings (client_name, client_phone, service, employee_id, client_email)
+         VALUES (?, ?, ?, ?, ?)`,
+        [client_name, client_phone, service, employee_id, client_email],
         function (err) {
           if (err) return reject(err);
           resolve({ id: this.lastID });
