@@ -14,6 +14,15 @@ const Review = {
     });
   },
 
+  findByBookingId(booking_id) {
+    return new Promise((resolve, reject) => {
+      getDb().get('SELECT * FROM reviews WHERE booking_id = ?', [booking_id], (err, row) => {
+        if (err) return reject(err);
+        resolve(row);
+      });
+    });
+  },
+
   findPublished() {
     return new Promise((resolve, reject) => {
       getDb().all(
@@ -21,12 +30,9 @@ const Review = {
          FROM reviews r
          JOIN bookings b ON r.booking_id = b.id
          WHERE r.is_published = 1
-         ORDER BY r.id DESC`,
+         ORDER BY r.created_at DESC`,
         [],
-        (err, rows) => {
-          if (err) return reject(err);
-          resolve(rows);
-        }
+        (err, rows) => { if (err) return reject(err); resolve(rows); }
       );
     });
   },
@@ -34,15 +40,12 @@ const Review = {
   findAll() {
     return new Promise((resolve, reject) => {
       getDb().all(
-        `SELECT r.*, b.client_name
+        `SELECT r.*, b.client_name, b.service
          FROM reviews r
          JOIN bookings b ON r.booking_id = b.id
-         ORDER BY r.id DESC`,
+         ORDER BY r.created_at DESC`,
         [],
-        (err, rows) => {
-          if (err) return reject(err);
-          resolve(rows);
-        }
+        (err, rows) => { if (err) return reject(err); resolve(rows); }
       );
     });
   },

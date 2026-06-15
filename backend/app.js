@@ -3,8 +3,10 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const { initDb } = require('./utils/db');
-const apiRouter = require('./routes/index');
-const authRouter = require('./routes/auth');
+const authRouter      = require('./routes/auth');
+const apiRouter       = require('./routes/index');
+const dashboardRouter = require('./routes/dashboard');
+const adminRouter     = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -15,6 +17,12 @@ app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 app.use('/api', authRouter);
 app.use('/api', apiRouter);
+app.use('/api/dashboard', dashboardRouter);
+app.use('/api/admin', adminRouter);
+
+app.get('/dashboard', (_req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'dashboard.html'));
+});
 
 app.get('*', (_req, res) => {
   res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));

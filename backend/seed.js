@@ -11,8 +11,9 @@ const services = [
 ];
 
 const employees = [
-  { email: 'photo@momento.ru',   full_name: 'Алексей Фотограф', role: 'employee', employee_type: 'photographer' },
-  { email: 'manager@momento.ru', full_name: 'Мария Менеджер',   role: 'employee', employee_type: 'manager'      },
+  { email: 'admin@momento.ru',   full_name: 'Администратор',    role: 'admin',     employee_type: null           },
+  { email: 'photo@momento.ru',   full_name: 'Алексей Фотограф', role: 'employee',  employee_type: 'photographer' },
+  { email: 'manager@momento.ru', full_name: 'Мария Менеджер',   role: 'employee',  employee_type: 'manager'      },
 ];
 
 function dbRun(db, sql, params) {

@@ -63,22 +63,27 @@ function initDb() {
           booking_id   INTEGER NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
           rating       INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
           text         TEXT,
-          is_published INTEGER NOT NULL DEFAULT 0
+          is_published INTEGER NOT NULL DEFAULT 0,
+          created_at   TEXT    NOT NULL DEFAULT (datetime('now'))
         )
       `);
 
-      // Migration: employee_type on services (default = photographer for existing rows)
-      database.run(
+      // Migrations
+      const migrations = [
         "ALTER TABLE services ADD COLUMN employee_type TEXT NOT NULL DEFAULT 'photographer'",
-        (err) => { if (err && !err.message.includes('duplicate column name')) return reject(err); }
-      );
-
-      // Migration: client_email on bookings
-      database.run('ALTER TABLE bookings ADD COLUMN client_email TEXT', (err) => {
-        if (err && !err.message.includes('duplicate column name')) return reject(err);
-        console.log('Database tables initialized.');
-        resolve(database);
-      });
+        'ALTER TABLE bookings ADD COLUMN client_email TEXT',
+        "ALTER TABLE reviews ADD COLUMN created_at TEXT NOT NULL DEFAULT (datetime('now'))",
+      ];
+      let pending = migrations.length;
+      for (const sql of migrations) {
+        database.run(sql, (err) => {
+          if (err && !err.message.includes('duplicate column name')) return reject(err);
+          if (--pending === 0) {
+            console.log('Database tables initialized.');
+            resolve(database);
+          }
+        });
+      }
     });
   });
 }

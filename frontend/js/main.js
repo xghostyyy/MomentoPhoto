@@ -21,32 +21,41 @@ async function apiFetch(path, options = {}) {
 function updateAuthUI() {
   const token    = localStorage.getItem('token');
   const fullName = localStorage.getItem('fullName');
+  const role     = localStorage.getItem('role');
 
-  const greeting  = document.getElementById('user-greeting');
-  const authBtn   = document.getElementById('auth-btn');
-  const logoutBtn = document.getElementById('logout-btn');
+  const greeting     = document.getElementById('user-greeting');
+  const authBtn      = document.getElementById('auth-btn');
+  const logoutBtn    = document.getElementById('logout-btn');
+  const dashLink     = document.getElementById('dashboard-link');
 
   if (token && fullName) {
     greeting.textContent = `Привет, ${fullName}`;
     greeting.classList.remove('hidden');
     authBtn.classList.add('hidden');
     logoutBtn.classList.remove('hidden');
+    if (role === 'admin' || role === 'employee') {
+      dashLink.classList.remove('hidden');
+    }
+    if (role === 'client') loadReviewForm();
   } else {
     greeting.classList.add('hidden');
     authBtn.classList.remove('hidden');
     logoutBtn.classList.add('hidden');
+    dashLink.classList.add('hidden');
   }
 }
 
-function saveSession({ token, fullName }) {
+function saveSession({ token, fullName, role = 'client' }) {
   localStorage.setItem('token', token);
   localStorage.setItem('fullName', fullName);
+  localStorage.setItem('role', role);
   updateAuthUI();
 }
 
 function clearSession() {
   localStorage.removeItem('token');
   localStorage.removeItem('fullName');
+  localStorage.removeItem('role');
   updateAuthUI();
 }
 
@@ -92,7 +101,7 @@ document.getElementById('login-form').addEventListener('submit', async (e) => {
         password: document.getElementById('login-password').value,
       }),
     });
-    saveSession({ token: data.token, fullName: data.fullName });
+    saveSession({ token: data.token, fullName: data.fullName, role: data.role });
     closeModal();
     e.target.reset();
   } catch (err) {
@@ -117,7 +126,7 @@ document.getElementById('register-form').addEventListener('submit', async (e) =>
         password: document.getElementById('reg-password').value,
       }),
     });
-    saveSession({ token: data.token, fullName });
+    saveSession({ token: data.token, fullName, role: data.role });
     closeModal();
     e.target.reset();
   } catch (err) {
@@ -196,6 +205,73 @@ document.getElementById('booking-form').addEventListener('submit', async (e) => 
     msg.textContent = 'Заявка принята! Письмо отправлено менеджеру, ожидайте подтверждения.';
     msg.className = 'form-msg success';
     e.target.reset();
+  } catch (err) {
+    msg.textContent = `Ошибка: ${err.message}`;
+    msg.className = 'form-msg error';
+  }
+});
+
+// ── Review form ───────────────────────────────────────────────────────
+async function loadReviewForm() {
+  try {
+    const bookings = await apiFetch('/user/confirmed-bookings');
+    if (!bookings || !bookings.length) return;
+
+    const wrap   = document.getElementById('review-form-wrap');
+    const select = document.getElementById('review-booking');
+    wrap.classList.remove('hidden');
+
+    select.innerHTML = '<option value="">Выберите запись</option>' +
+      bookings.map(b => `<option value="${b.id}">${b.service} (${b.created_at ? b.created_at.slice(0,10) : ''})</option>`).join('');
+  } catch { /* not logged in or no confirmed bookings */ }
+}
+
+// Star rating UI
+let selectedRating = 0;
+document.querySelectorAll('.star').forEach(star => {
+  star.addEventListener('click', () => {
+    selectedRating = Number(star.dataset.v);
+    document.getElementById('review-rating').value = selectedRating;
+    document.querySelectorAll('.star').forEach(s => {
+      s.classList.toggle('active', Number(s.dataset.v) <= selectedRating);
+    });
+  });
+  star.addEventListener('mouseover', () => {
+    const v = Number(star.dataset.v);
+    document.querySelectorAll('.star').forEach(s => {
+      s.classList.toggle('active', Number(s.dataset.v) <= v);
+    });
+  });
+  star.addEventListener('mouseout', () => {
+    document.querySelectorAll('.star').forEach(s => {
+      s.classList.toggle('active', Number(s.dataset.v) <= selectedRating);
+    });
+  });
+});
+
+document.getElementById('review-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById('review-msg');
+  msg.className = 'form-msg';
+  msg.textContent = '';
+
+  const booking_id = document.getElementById('review-booking').value;
+  const rating     = document.getElementById('review-rating').value;
+  const text       = document.getElementById('review-text').value.trim();
+
+  if (!booking_id) { msg.textContent = 'Выберите запись'; msg.className = 'form-msg error'; return; }
+  if (!rating)     { msg.textContent = 'Поставьте оценку'; msg.className = 'form-msg error'; return; }
+
+  try {
+    await apiFetch('/reviews', {
+      method: 'POST',
+      body: JSON.stringify({ booking_id: Number(booking_id), rating: Number(rating), text }),
+    });
+    msg.textContent = 'Отзыв отправлен! Он будет опубликован после проверки администратором.';
+    msg.className = 'form-msg success';
+    e.target.reset();
+    selectedRating = 0;
+    document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
   } catch (err) {
     msg.textContent = `Ошибка: ${err.message}`;
     msg.className = 'form-msg error';

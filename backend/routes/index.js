@@ -106,7 +106,7 @@ router.get('/reviews', async (_req, res) => {
   }
 });
 
-router.post('/reviews', async (req, res) => {
+router.post('/reviews', authenticate, async (req, res) => {
   try {
     const { booking_id, rating, text } = req.body;
     if (!booking_id || !rating) {
@@ -119,8 +119,34 @@ router.post('/reviews', async (req, res) => {
     const booking = await Booking.findById(booking_id);
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
 
+    // Verify booking belongs to current user
+    const me = await User.findById(req.user.id);
+    if (booking.client_email !== me.email) {
+      return res.status(403).json({ error: 'This booking does not belong to you' });
+    }
+    if (booking.status !== 'confirmed') {
+      return res.status(400).json({ error: 'You can only review confirmed bookings' });
+    }
+
+    // Prevent duplicate reviews
+    const existing = await Review.findByBookingId(booking_id);
+    if (existing) return res.status(409).json({ error: 'Review for this booking already exists' });
+
     const result = await Review.create({ booking_id, rating: ratingNum, text });
     res.status(201).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ── User: confirmed bookings ──────────────────────────────────────────
+router.get('/user/confirmed-bookings', authenticate, async (req, res) => {
+  try {
+    const me = await User.findById(req.user.id);
+    if (!me) return res.status(404).json({ error: 'User not found' });
+    const bookings = await Booking.findByClientEmail(me.email, 'confirmed');
+    res.json(bookings);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Internal server error' });

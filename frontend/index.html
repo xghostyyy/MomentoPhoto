@@ -12,25 +12,20 @@
     <div class="modal-overlay" id="modal-overlay"></div>
     <div class="modal-box">
       <button class="modal-close" id="modal-close">&times;</button>
-
       <div class="tabs">
         <button class="tab active" data-tab="login">Войти</button>
         <button class="tab" data-tab="register">Регистрация</button>
       </div>
-
-      <!-- Login -->
       <form id="login-form" class="form auth-form">
-        <input type="email"    id="login-email"    placeholder="Email"    required />
-        <input type="password" id="login-password" placeholder="Пароль"   required />
+        <input type="email"    id="login-email"    placeholder="Email"   required />
+        <input type="password" id="login-password" placeholder="Пароль"  required />
         <button type="submit" class="btn btn--full">Войти</button>
         <p id="login-msg" class="form-msg"></p>
       </form>
-
-      <!-- Register -->
       <form id="register-form" class="form auth-form hidden">
-        <input type="text"     id="reg-name"     placeholder="Ваше имя"  required />
-        <input type="email"    id="reg-email"    placeholder="Email"      required />
-        <input type="password" id="reg-password" placeholder="Пароль"    required />
+        <input type="text"     id="reg-name"     placeholder="Ваше имя" required />
+        <input type="email"    id="reg-email"    placeholder="Email"     required />
+        <input type="password" id="reg-password" placeholder="Пароль"   required />
         <button type="submit" class="btn btn--full">Зарегистрироваться</button>
         <p id="register-msg" class="form-msg"></p>
       </form>
@@ -47,6 +42,7 @@
       </nav>
       <div class="header-auth">
         <span id="user-greeting" class="user-greeting hidden"></span>
+        <a id="dashboard-link" href="/dashboard" class="btn btn--sm btn--outline hidden">Дашборд</a>
         <button id="auth-btn"   class="btn btn--sm">Войти</button>
         <button id="logout-btn" class="btn btn--sm btn--outline hidden">Выйти</button>
       </div>
@@ -65,9 +61,7 @@
     <section id="services" class="section">
       <div class="container">
         <h2 class="section-title">Наши услуги</h2>
-        <div id="services-list" class="services-grid">
-          <p>Загрузка...</p>
-        </div>
+        <div id="services-list" class="services-grid"><p>Загрузка...</p></div>
       </div>
     </section>
 
@@ -89,8 +83,27 @@
     <section id="reviews" class="section">
       <div class="container">
         <h2 class="section-title">Отзывы</h2>
-        <div id="reviews-list" class="reviews-grid">
-          <p>Загрузка...</p>
+        <div id="reviews-list" class="reviews-grid"><p>Загрузка...</p></div>
+
+        <!-- Review form — shown only for clients with confirmed bookings -->
+        <div id="review-form-wrap" class="hidden" style="margin-top:48px">
+          <h3 class="section-title" style="font-size:1.4rem">Оставить отзыв</h3>
+          <form id="review-form" class="form">
+            <select id="review-booking" required>
+              <option value="">Выберите запись</option>
+            </select>
+            <div class="star-rating" id="star-rating">
+              <span class="star" data-v="1">★</span>
+              <span class="star" data-v="2">★</span>
+              <span class="star" data-v="3">★</span>
+              <span class="star" data-v="4">★</span>
+              <span class="star" data-v="5">★</span>
+            </div>
+            <input type="hidden" id="review-rating" value="" />
+            <textarea id="review-text" placeholder="Расскажите о вашем опыте..." rows="4"></textarea>
+            <button type="submit" class="btn">Отправить отзыв</button>
+            <p id="review-msg" class="form-msg"></p>
+          </form>
         </div>
       </div>
     </section>

@@ -47,6 +47,34 @@ const User = {
     });
   },
 
+  getAllUsers() {
+    return new Promise((resolve, reject) => {
+      getDb().all(
+        'SELECT id, email, role, full_name, employee_type FROM users ORDER BY id ASC',
+        [],
+        (err, rows) => { if (err) return reject(err); resolve(rows); }
+      );
+    });
+  },
+
+  updateRole(userId, newRole) {
+    return new Promise((resolve, reject) => {
+      getDb().run('UPDATE users SET role = ? WHERE id = ?', [newRole, userId], function (err) {
+        if (err) return reject(err);
+        resolve({ changes: this.changes });
+      });
+    });
+  },
+
+  deleteById(userId) {
+    return new Promise((resolve, reject) => {
+      getDb().run('DELETE FROM users WHERE id = ?', [userId], function (err) {
+        if (err) return reject(err);
+        resolve({ changes: this.changes });
+      });
+    });
+  },
+
   findAllEmployees({ includeEmail = false } = {}) {
     const cols = includeEmail
       ? 'id, email, full_name, employee_type'
