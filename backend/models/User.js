@@ -47,10 +47,13 @@ const User = {
     });
   },
 
-  findAllEmployees() {
+  findAllEmployees({ includeEmail = false } = {}) {
+    const cols = includeEmail
+      ? 'id, email, full_name, employee_type'
+      : 'id, full_name, employee_type';
     return new Promise((resolve, reject) => {
       getDb().all(
-        "SELECT id, email, full_name, employee_type FROM users WHERE role = 'employee'",
+        `SELECT ${cols} FROM users WHERE role = 'employee'`,
         [],
         (err, rows) => {
           if (err) return reject(err);

@@ -42,7 +42,7 @@ router.post('/bookings', optionalAuth, async (req, res) => {
     // Route notification to the employee whose type matches the service
     const [serviceRecord, employees] = await Promise.all([
       Service.findByName(service),
-      User.findAllEmployees(),
+      User.findAllEmployees({ includeEmail: true }),
     ]);
     const targetType     = serviceRecord?.employee_type || 'photographer';
     const recipientEmail = employees.find((e) => e.employee_type === targetType)?.email;
@@ -71,7 +71,8 @@ router.patch('/bookings/:id/status', authenticate, requireRole('admin', 'employe
     if (!allowed.includes(status)) {
       return res.status(400).json({ error: `status must be one of: ${allowed.join(', ')}` });
     }
-    await Booking.updateStatus(req.params.id, status);
+    const { changes } = await Booking.updateStatus(req.params.id, status);
+    if (changes === 0) return res.status(404).json({ error: 'Booking not found' });
     res.json({ success: true });
   } catch (err) {
     console.error(err);
@@ -111,7 +112,14 @@ router.post('/reviews', async (req, res) => {
     if (!booking_id || !rating) {
       return res.status(400).json({ error: 'booking_id and rating are required' });
     }
-    const result = await Review.create({ booking_id, rating, text });
+    const ratingNum = Number(rating);
+    if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
+      return res.status(400).json({ error: 'rating must be an integer between 1 and 5' });
+    }
+    const booking = await Booking.findById(booking_id);
+    if (!booking) return res.status(404).json({ error: 'Booking not found' });
+
+    const result = await Review.create({ booking_id, rating: ratingNum, text });
     res.status(201).json(result);
   } catch (err) {
     console.error(err);
@@ -122,7 +130,8 @@ router.post('/reviews', async (req, res) => {
 router.patch('/reviews/:id/publish', authenticate, requireRole('admin'), async (req, res) => {
   try {
     const { is_published } = req.body;
-    await Review.setPublished(req.params.id, is_published);
+    const { changes } = await Review.setPublished(req.params.id, is_published);
+    if (changes === 0) return res.status(404).json({ error: 'Review not found' });
     res.json({ success: true });
   } catch (err) {
     console.error(err);

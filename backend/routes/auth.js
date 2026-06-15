@@ -9,10 +9,12 @@ const { verifyToken } = require('../middleware/auth');
 // POST /api/register
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, fullName, role = 'client', employeeType } = req.body;
+    const { email, password, fullName, employeeType } = req.body;
     if (!email || !password || !fullName) {
       return res.status(400).json({ error: 'email, password и fullName обязательны' });
     }
+    // Role is always 'client' on self-registration — elevated roles only via seed/admin
+    const role = 'client';
 
     const existing = await User.findByEmail(email);
     if (existing) return res.status(409).json({ error: 'Email уже зарегистрирован' });
