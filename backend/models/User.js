@@ -37,6 +37,16 @@ const User = {
     });
   },
 
+  createUser(email, passwordHash, role = 'client', fullName, employeeType = null) {
+    return User.create({
+      email,
+      password_hash: passwordHash,
+      role,
+      full_name: fullName,
+      employee_type: employeeType,
+    });
+  },
+
   findAllEmployees() {
     return new Promise((resolve, reject) => {
       getDb().all(

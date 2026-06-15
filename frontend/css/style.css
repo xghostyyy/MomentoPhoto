@@ -140,3 +140,66 @@ body {
   font-size: 0.85rem;
   border-top: 1px solid #1e1e1e;
 }
+
+/* Header auth area */
+.header-auth { display: flex; align-items: center; gap: 10px; }
+.user-greeting { font-size: 0.9rem; color: var(--color-accent); }
+.btn--sm  { padding: 7px 18px; font-size: 0.85rem; }
+.btn--outline {
+  background: transparent;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+}
+.btn--full { width: 100%; text-align: center; }
+
+/* Modal */
+.modal { position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; }
+.modal.hidden { display: none; }
+.modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); }
+.modal-box {
+  position: relative;
+  z-index: 1;
+  background: var(--color-surface);
+  border: 1px solid #2a2a2a;
+  border-radius: var(--radius);
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 420px;
+}
+.modal-close {
+  position: absolute;
+  top: 14px; right: 18px;
+  background: none; border: none;
+  color: var(--color-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+.modal-close:hover { color: var(--color-text); }
+
+/* Tabs */
+.tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+.tab {
+  flex: 1;
+  background: none;
+  border: 1px solid #333;
+  border-radius: var(--radius);
+  color: var(--color-muted);
+  padding: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all var(--transition);
+}
+.tab.active {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  background: rgba(201,169,110,0.08);
+}
+
+/* Auth form uses same .form styles; add inside-modal bg fix */
+.modal-box .form input {
+  background: #111;
+}
+
+/* Utility */
+.hidden { display: none !important; }

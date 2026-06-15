@@ -25,4 +25,6 @@ function requireRole(...roles) {
   };
 }
 
-module.exports = { authenticate, requireRole };
+const verifyToken = authenticate;
+
+module.exports = { authenticate, verifyToken, requireRole };

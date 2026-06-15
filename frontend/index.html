@@ -7,6 +7,36 @@
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
+  <!-- Auth modal -->
+  <div id="auth-modal" class="modal hidden">
+    <div class="modal-overlay" id="modal-overlay"></div>
+    <div class="modal-box">
+      <button class="modal-close" id="modal-close">&times;</button>
+
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Войти</button>
+        <button class="tab" data-tab="register">Регистрация</button>
+      </div>
+
+      <!-- Login -->
+      <form id="login-form" class="form auth-form">
+        <input type="email"    id="login-email"    placeholder="Email"    required />
+        <input type="password" id="login-password" placeholder="Пароль"   required />
+        <button type="submit" class="btn btn--full">Войти</button>
+        <p id="login-msg" class="form-msg"></p>
+      </form>
+
+      <!-- Register -->
+      <form id="register-form" class="form auth-form hidden">
+        <input type="text"     id="reg-name"     placeholder="Ваше имя"  required />
+        <input type="email"    id="reg-email"    placeholder="Email"      required />
+        <input type="password" id="reg-password" placeholder="Пароль"    required />
+        <button type="submit" class="btn btn--full">Зарегистрироваться</button>
+        <p id="register-msg" class="form-msg"></p>
+      </form>
+    </div>
+  </div>
+
   <header class="header">
     <div class="container">
       <h1 class="logo">Momento</h1>
@@ -15,6 +45,11 @@
         <a href="#booking">Запись</a>
         <a href="#reviews">Отзывы</a>
       </nav>
+      <div class="header-auth">
+        <span id="user-greeting" class="user-greeting hidden"></span>
+        <button id="auth-btn"   class="btn btn--sm">Войти</button>
+        <button id="logout-btn" class="btn btn--sm btn--outline hidden">Выйти</button>
+      </div>
     </div>
   </header>
 
@@ -40,8 +75,8 @@
       <div class="container">
         <h2 class="section-title">Запись на съёмку</h2>
         <form id="booking-form" class="form">
-          <input type="text"   id="client_name"  placeholder="Ваше имя"    required />
-          <input type="tel"    id="client_phone" placeholder="+7 (___) ___-__-__" required />
+          <input type="text" id="client_name"  placeholder="Ваше имя"           required />
+          <input type="tel"  id="client_phone" placeholder="+7 (___) ___-__-__" required />
           <select id="service" required>
             <option value="">Выберите услугу</option>
           </select>
