@@ -3,6 +3,7 @@
  */
 require('dotenv').config();
 const http = require('http');
+const EmailVerification = require('./models/EmailVerification');
 
 let pass = 0; let fail = 0;
 function ok(l)     { console.log('[PASS]', l); pass++; }
@@ -42,15 +43,23 @@ async function main() {
   const aT = adminR.body.token; const pT = photoR.body.token; const mT = mgrR.body.token;
   if (aT && pT && mT) ok('Login all 3 roles'); else ko('Login', 'missing tokens');
 
-  // Register client
-  const regR = await req('POST', '/api/register', { fullName: 'Тест Клиент', email: 'client_test@test.ru', password: 'pass123' });
-  if (regR.status === 201 && regR.body.role === 'client') ok('Register → client role');
-  else if (regR.status === 409) ok('Register (already exists, skipping)');
-  else ko('Register', JSON.stringify(regR.body));
+  // Register client — 2-step: request code, then verify
+  const clientEmail = `client_${Date.now()}@test.ru`;
+  const regR = await req('POST', '/api/register', { fullName: 'Тест Клиент', email: clientEmail, password: 'pass123' });
+  if (regR.status === 200 && regR.body.pending) ok('Register → code sent (pending)');
+  else ko('Register pending', JSON.stringify(regR.body));
 
-  const loginClientR = await req('POST', '/api/login', { email: 'client_test@test.ru', password: 'pass123' });
-  const cT = loginClientR.body.token;
-  if (cT) ok('Client login'); else ko('Client login', '');
+  const v = await EmailVerification.findByEmail(clientEmail);
+  const verR = await req('POST', '/api/verify-code', { email: clientEmail, code: v ? v.code : '000000' });
+  if (verR.status === 201 && verR.body.role === 'client') ok('Verify code → client created');
+  else ko('Verify code', JSON.stringify(verR.body));
+  const cT = verR.body.token;
+  if (cT) ok('Client token obtained'); else ko('Client token', '');
+
+  // Wrong code rejected
+  const badReg = await req('POST', '/api/register', { fullName: 'Bad', email: `bad_${Date.now()}@test.ru`, password: 'pass123' });
+  const badVer = await req('POST', '/api/verify-code', { email: badReg.body.email, code: '000000' });
+  if (badVer.status === 400) ok('Wrong code → 400'); else ko('Wrong code', badVer.status);
 
   // GET /api/me includes role
   const meR = await req('GET', '/api/me', null, cT);

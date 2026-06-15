@@ -54,6 +54,22 @@ async function sendConfirmationToClient(booking) {
   await sendEmail(booking.client_email, `Подтверждение записи — ${booking.service}`, html);
 }
 
+async function sendVerificationCode(to, code, name) {
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto">
+      <h2 style="color:#b35a36">Подтверждение регистрации</h2>
+      <p>Здравствуйте${name ? ', <b>' + name + '</b>' : ''}!</p>
+      <p>Ваш код подтверждения для входа в Momento:</p>
+      <div style="font-size:34px;font-weight:800;letter-spacing:8px;color:#b35a36;
+                  background:#ffe0cc;border-radius:14px;padding:18px;text-align:center;margin:18px 0">
+        ${code}
+      </div>
+      <p style="color:#999;font-size:13px">Код действует 15 минут. Если вы не регистрировались — просто проигнорируйте это письмо.</p>
+    </div>
+  `;
+  await sendEmail(to, `Код подтверждения Momento: ${code}`, html);
+}
+
 async function sendFeedbackEmail({ name, email, message }, recipientEmail) {
   if (!recipientEmail) {
     console.log('[email] no manager found — feedback not forwarded');
@@ -70,4 +86,4 @@ async function sendFeedbackEmail({ name, email, message }, recipientEmail) {
   await sendEmail(recipientEmail, `Обратная связь от ${name}`, html);
 }
 
-module.exports = { sendEmail, sendBookingNotification, sendConfirmationToClient, sendFeedbackEmail };
+module.exports = { sendEmail, sendBookingNotification, sendConfirmationToClient, sendFeedbackEmail, sendVerificationCode };

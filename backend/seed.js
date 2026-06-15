@@ -11,9 +11,13 @@ const services = [
 ];
 
 const employees = [
-  { email: 'admin@momento.ru',   full_name: 'Администратор',    role: 'admin',     employee_type: null           },
-  { email: 'photo@momento.ru',   full_name: 'Алексей Фотограф', role: 'employee',  employee_type: 'photographer' },
-  { email: 'manager@momento.ru', full_name: 'Мария Менеджер',   role: 'employee',  employee_type: 'manager'      },
+  { email: 'admin@momento.ru',   full_name: 'Администратор',     role: 'admin',     employee_type: null           },
+  { email: 'photo@momento.ru',   full_name: 'Алексей Смирнов',   role: 'employee',  employee_type: 'photographer' },
+  { email: 'manager@momento.ru', full_name: 'Мария Иванова',     role: 'employee',  employee_type: 'manager'      },
+  { email: 'dmitry@momento.ru',  full_name: 'Дмитрий Соколов',   role: 'employee',  employee_type: 'photographer' },
+  { email: 'elena@momento.ru',   full_name: 'Елена Морозова',    role: 'employee',  employee_type: 'stylist'      },
+  { email: 'igor@momento.ru',    full_name: 'Игорь Волков',      role: 'employee',  employee_type: 'retoucher'    },
+  { email: 'anna@momento.ru',    full_name: 'Анна Кузнецова',    role: 'employee',  employee_type: 'photographer' },
 ];
 
 function dbRun(db, sql, params) {
@@ -39,11 +43,21 @@ async function seed() {
 
   const passwordHash = await bcrypt.hash('test123', 10);
 
+  // Remove stray employees left over from earlier tests (keep only seeded staff + real clients)
+  const seededEmails = employees.map((e) => e.email);
+  const placeholders = seededEmails.map(() => '?').join(',');
+  await dbRun(db, `DELETE FROM users WHERE role = 'employee' AND email NOT IN (${placeholders})`, seededEmails);
+
   for (const e of employees) {
     await dbRun(
       db,
-      `INSERT OR IGNORE INTO users (email, password_hash, role, full_name, employee_type)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO users (email, password_hash, role, full_name, employee_type)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT(email) DO UPDATE SET
+         full_name     = excluded.full_name,
+         role          = excluded.role,
+         employee_type = excluded.employee_type,
+         password_hash = excluded.password_hash`,
       [e.email, passwordHash, e.role, e.full_name, e.employee_type]
     );
     console.log(`Seeded employee: ${e.email} (${e.employee_type})`);

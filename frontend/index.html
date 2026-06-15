@@ -28,9 +28,18 @@
       <form id="register-form" class="form hidden">
         <input type="text"     id="reg-name"     placeholder="Ваше имя" required />
         <input type="email"    id="reg-email"    placeholder="Email"     required />
-        <input type="password" id="reg-password" placeholder="Пароль"   required />
-        <button type="submit" class="btn btn--full">Зарегистрироваться</button>
+        <input type="password" id="reg-password" placeholder="Пароль (мин. 6 символов)" minlength="6" required />
+        <button type="submit" class="btn btn--full">Получить код</button>
         <p id="register-msg" class="form-msg"></p>
+      </form>
+      <form id="verify-form" class="form hidden">
+        <p class="verify-hint">Мы отправили 6-значный код на<br><b id="verify-email"></b></p>
+        <input type="text" id="verify-code" class="code-input" placeholder="000000"
+               inputmode="numeric" autocomplete="one-time-code" maxlength="6" required />
+        <button type="submit" class="btn btn--full">Подтвердить</button>
+        <button type="button" id="verify-resend" class="link-btn">Отправить код заново</button>
+        <button type="button" id="verify-back"   class="link-btn">← Изменить данные</button>
+        <p id="verify-msg" class="form-msg"></p>
       </form>
     </div>
   </div>
@@ -50,6 +59,18 @@
         <p id="booking-msg" class="form-msg"></p>
       </form>
     </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox hidden">
+    <button class="lb-close" id="lb-close" aria-label="Закрыть">&times;</button>
+    <button class="lb-nav lb-prev" id="lb-prev" aria-label="Назад">&#8249;</button>
+    <figure class="lb-figure">
+      <img class="lb-img" id="lb-img" alt="" />
+      <figcaption class="lb-caption" id="lb-caption"></figcaption>
+    </figure>
+    <button class="lb-nav lb-next" id="lb-next" aria-label="Вперёд">&#8250;</button>
+    <div class="lb-counter" id="lb-counter"></div>
   </div>
 
   <!-- Header -->
@@ -98,7 +119,7 @@
       <p class="hero-sub">Фотосессии, аренда студии, свадебная съёмка —<br>мы создаём воспоминания на всю жизнь</p>
       <div class="hero-actions">
         <button class="btn btn--hero" id="hero-cta">Записаться</button>
-        <a href="#services" class="btn btn--outline-white">Наши услуги</a>
+        <a href="#services" class="btn btn--outline">Наши услуги</a>
       </div>
     </div>
     <div class="hero-scroll-hint">
@@ -120,10 +141,10 @@
         </div>
       </div>
       <div class="about-stats">
-        <div class="stat-card"><div class="stat-num">500+</div><div class="stat-label">Довольных клиентов</div></div>
-        <div class="stat-card"><div class="stat-num">6</div><div class="stat-label">Лет опыта</div></div>
-        <div class="stat-card"><div class="stat-num">15+</div><div class="stat-label">Форматов съёмки</div></div>
-        <div class="stat-card"><div class="stat-num">98%</div><div class="stat-label">Положительных отзывов</div></div>
+        <div class="stat-card"><div class="stat-num" data-count="500">0</div><div class="stat-label">Довольных клиентов</div></div>
+        <div class="stat-card"><div class="stat-num" data-count="8">0</div><div class="stat-label">Лет опыта</div></div>
+        <div class="stat-card"><div class="stat-num" data-count="15">0</div><div class="stat-label">Форматов съёмки</div></div>
+        <div class="stat-card"><div class="stat-num" data-count="98" data-suffix="%">0</div><div class="stat-label">Положительных отзывов</div></div>
       </div>
     </div>
   </section>
@@ -139,7 +160,7 @@
     </div>
   </section>
 
-  <!-- Team 3D carousel -->
+  <!-- Team -->
   <section class="section reveal" id="team">
     <div class="container">
       <span class="section-label">Наша команда</span>
@@ -160,13 +181,8 @@
     <div class="container">
       <span class="section-label">Работы</span>
       <h2 class="section-title">Галерея</h2>
-      <div class="gallery-controls">
-        <button class="btn btn--sm" id="gallery-stop">&#9646;&#9646; Стоп</button>
-        <button class="btn btn--sm btn--outline" id="gallery-start">&#9654; Старт</button>
-      </div>
-    </div>
-    <div class="gallery-scroll-wrap">
-      <div class="gallery-scroll" id="gallery-scroll"></div>
+      <p class="section-sub">Нажмите на фотографию, чтобы рассмотреть детальнее</p>
+      <div class="gallery-grid" id="gallery-grid"></div>
     </div>
   </section>
 
@@ -219,22 +235,18 @@
         <input  type="email" id="fb-email"   placeholder="Email для ответа"        />
         <textarea            id="fb-message" placeholder="Ваш вопрос или сообщение..." rows="5" required></textarea>
         <button type="submit" class="btn btn--white">Отправить сообщение</button>
-        <p id="feedback-msg" class="form-msg"></p>
+        <p id="feedback-msg" class="form-msg form-msg--light"></p>
       </form>
     </div>
   </section>
 
   <!-- Footer -->
   <footer class="footer" id="contact">
-    <div class="container footer-grid">
+    <div class="footer-grid">
       <div class="footer-brand">
         <div class="logo footer-logo">Momento</div>
         <p>Профессиональная фотостудия.<br>Создаём воспоминания с 2018 года.</p>
-        <div class="footer-contacts">
-          <div>&#128205; Москва, ул. Примерная, 1</div>
-          <div>&#128222; +7 (999) 123-45-67</div>
-          <div>&#9993; info@momento.ru</div>
-        </div>
+        <div class="footer-contacts" id="footer-contacts"></div>
       </div>
       <div class="footer-nav">
         <h4>Разделы</h4>
@@ -251,18 +263,18 @@
           <input  type="email" id="ct-email"   placeholder="Email"       />
           <textarea            id="ct-message" placeholder="Сообщение..." rows="3" required></textarea>
           <button type="submit" class="btn btn--sm">Отправить</button>
-          <p id="contact-msg" class="form-msg form-msg--light"></p>
+          <p id="contact-msg" class="form-msg"></p>
         </form>
       </div>
     </div>
     <div class="footer-bottom">
-      <p>&copy; 2024 Momento. Все права защищены.</p>
+      <p>&copy; <span id="year"></span> Momento. Все права защищены.</p>
     </div>
   </footer>
 
   <!-- Floating CTA -->
   <button class="fab" id="fab" title="Записаться">
-    <span class="fab-icon">&#128247;</span>
+    <span class="fab-icon" id="fab-icon"></span>
     <span class="fab-label">Записаться</span>
   </button>
 
