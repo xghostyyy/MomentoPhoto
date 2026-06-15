@@ -3,10 +3,11 @@ const bcrypt = require('bcryptjs');
 const { initDb, getDb } = require('./utils/db');
 
 const services = [
-  { name: 'Портретная съёмка',   price: 5000,  duration: 60  },
-  { name: 'Семейная фотосессия', price: 8000,  duration: 90  },
-  { name: 'Предметная съёмка',   price: 3500,  duration: 45  },
-  { name: 'Свадебная фотосессия',price: 25000, duration: 480 },
+  { name: 'Портретная съёмка',    price: 5000,  duration: 60,  employee_type: 'photographer' },
+  { name: 'Семейная фотосессия',  price: 8000,  duration: 90,  employee_type: 'photographer' },
+  { name: 'Предметная съёмка',    price: 3500,  duration: 45,  employee_type: 'photographer' },
+  { name: 'Свадебная фотосессия', price: 25000, duration: 480, employee_type: 'photographer' },
+  { name: 'Аренда помещения',     price: 2000,  duration: 60,  employee_type: 'manager'      },
 ];
 
 const employees = [
@@ -24,13 +25,15 @@ async function seed() {
   await initDb();
   const db = getDb();
 
+  // Wipe and re-insert so seed is idempotent regardless of UNIQUE constraints
+  await dbRun(db, 'DELETE FROM services');
   for (const s of services) {
     await dbRun(
       db,
-      'INSERT OR IGNORE INTO services (name, price, duration) VALUES (?, ?, ?)',
-      [s.name, s.price, s.duration]
+      'INSERT INTO services (name, price, duration, employee_type) VALUES (?, ?, ?, ?)',
+      [s.name, s.price, s.duration, s.employee_type]
     );
-    console.log(`Seeded service: ${s.name}`);
+    console.log(`Seeded service: ${s.name} → ${s.employee_type}`);
   }
 
   const passwordHash = await bcrypt.hash('test123', 10);

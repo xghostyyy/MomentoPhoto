@@ -39,11 +39,14 @@ router.post('/bookings', optionalAuth, async (req, res) => {
     const result = await Booking.create({ client_name, client_phone, service, employee_id, client_email });
     const booking = await Booking.findById(result.id);
 
-    // Notify employees asynchronously — don't block the response
-    const employees = await User.findAllEmployees();
-    const photographerEmail = employees.find((e) => e.employee_type === 'photographer')?.email;
-    const managerEmail      = employees.find((e) => e.employee_type === 'manager')?.email;
-    sendBookingNotification(booking, photographerEmail, managerEmail).catch(console.error);
+    // Route notification to the employee whose type matches the service
+    const [serviceRecord, employees] = await Promise.all([
+      Service.findByName(service),
+      User.findAllEmployees(),
+    ]);
+    const targetType     = serviceRecord?.employee_type || 'photographer';
+    const recipientEmail = employees.find((e) => e.employee_type === targetType)?.email;
+    sendBookingNotification(booking, recipientEmail).catch(console.error);
 
     res.status(201).json({ ...result, emailSent: true });
   } catch (err) {

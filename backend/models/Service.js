@@ -19,11 +19,20 @@ const Service = {
     });
   },
 
-  create({ name, price, duration }) {
+  findByName(name) {
+    return new Promise((resolve, reject) => {
+      getDb().get('SELECT * FROM services WHERE name = ?', [name], (err, row) => {
+        if (err) return reject(err);
+        resolve(row);
+      });
+    });
+  },
+
+  create({ name, price, duration, employee_type = 'photographer' }) {
     return new Promise((resolve, reject) => {
       getDb().run(
-        'INSERT INTO services (name, price, duration) VALUES (?, ?, ?)',
-        [name, price, duration],
+        'INSERT INTO services (name, price, duration, employee_type) VALUES (?, ?, ?, ?)',
+        [name, price, duration, employee_type],
         function (err) {
           if (err) return reject(err);
           resolve({ id: this.lastID });

@@ -67,7 +67,13 @@ function initDb() {
         )
       `);
 
-      // Migration: add client_email if it doesn't exist yet
+      // Migration: employee_type on services (default = photographer for existing rows)
+      database.run(
+        "ALTER TABLE services ADD COLUMN employee_type TEXT NOT NULL DEFAULT 'photographer'",
+        (err) => { if (err && !err.message.includes('duplicate column name')) return reject(err); }
+      );
+
+      // Migration: client_email on bookings
       database.run('ALTER TABLE bookings ADD COLUMN client_email TEXT', (err) => {
         if (err && !err.message.includes('duplicate column name')) return reject(err);
         console.log('Database tables initialized.');

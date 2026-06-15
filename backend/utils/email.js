@@ -22,21 +22,22 @@ async function sendEmail(to, subject, html) {
   console.log(`[email] sent to ${to}: ${subject}`);
 }
 
-async function sendBookingNotification(booking, employeeEmail, managerEmail) {
+async function sendBookingNotification(booking, recipientEmail) {
+  if (!recipientEmail) {
+    console.log(`[email] no recipient found for booking #${booking.id}, service="${booking.service}"`);
+    return;
+  }
   const html = `
-    <h2>Новая заявка на съёмку #${booking.id}</h2>
-    <table>
+    <h2>Новая заявка #${booking.id}</h2>
+    <table cellpadding="6" style="border-collapse:collapse">
       <tr><td><b>Клиент:</b></td><td>${booking.client_name}</td></tr>
       <tr><td><b>Телефон:</b></td><td>${booking.client_phone}</td></tr>
       <tr><td><b>Email:</b></td><td>${booking.client_email || '—'}</td></tr>
       <tr><td><b>Услуга:</b></td><td>${booking.service}</td></tr>
-      <tr><td><b>Статус:</b></td><td>${booking.status}</td></tr>
     </table>
+    <p style="margin-top:16px;color:#888">Войдите в панель для подтверждения заявки.</p>
   `;
-  const subject = `Новая заявка #${booking.id} — ${booking.service}`;
-
-  const recipients = [employeeEmail, managerEmail].filter(Boolean);
-  await Promise.all(recipients.map((to) => sendEmail(to, subject, html)));
+  await sendEmail(recipientEmail, `Новая заявка #${booking.id} — ${booking.service}`, html);
 }
 
 async function sendConfirmationToClient(booking) {
