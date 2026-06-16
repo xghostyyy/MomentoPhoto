@@ -12,7 +12,6 @@ function getDb() {
         console.error('Failed to connect to SQLite:', err.message);
         process.exit(1);
       }
-      console.log('Connected to SQLite database.');
     });
     db.run('PRAGMA foreign_keys = ON');
   }
@@ -117,7 +116,6 @@ function initDb() {
         database.run(sql, (err) => {
           if (err && !err.message.includes('duplicate column name')) return reject(err);
           if (--pending === 0) {
-            console.log('Database tables initialized.');
             resolve(database);
           }
         });

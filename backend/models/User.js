@@ -93,6 +93,43 @@ const User = {
     });
   },
 
+  findTeamByType(employeeType, { includeEmail = false, includeMail = false } = {}) {
+    const cols = [
+      'id', 'full_name', 'employee_type', 'role',
+      ...(includeEmail ? ['email'] : []),
+      ...(includeMail  ? ['mail_user', 'mail_pass'] : []),
+    ].join(', ');
+    return new Promise((resolve, reject) => {
+      // Always include all admins; filter employees by their type
+      getDb().all(
+        `SELECT ${cols} FROM users WHERE role = 'admin' OR (role = 'employee' AND employee_type = ?)`,
+        [employeeType],
+        (err, rows) => {
+          if (err) return reject(err);
+          resolve(rows);
+        }
+      );
+    });
+  },
+
+  findAllAdmins({ includeEmail = false, includeMail = false } = {}) {
+    const cols = [
+      'id', 'full_name', 'employee_type', 'role',
+      ...(includeEmail ? ['email'] : []),
+      ...(includeMail  ? ['mail_user', 'mail_pass'] : []),
+    ].join(', ');
+    return new Promise((resolve, reject) => {
+      getDb().all(
+        `SELECT ${cols} FROM users WHERE role = 'admin'`,
+        [],
+        (err, rows) => {
+          if (err) return reject(err);
+          resolve(rows);
+        }
+      );
+    });
+  },
+
   findTeam() {
     return new Promise((resolve, reject) => {
       getDb().all(

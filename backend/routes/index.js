@@ -45,18 +45,17 @@ router.post('/bookings', optionalAuth, async (req, res) => {
     const result = await Booking.create({ client_name, client_phone, service, employee_id, client_email, booking_date, booking_time });
     const booking = await Booking.findById(result.id);
 
-    // Route notification to the employee whose type matches the service
-    const [serviceRecord, employees] = await Promise.all([
-      Service.findByName(service),
-      User.findAllEmployees({ includeEmail: true, includeMail: true }),
-    ]);
+    // Notify all admins + employees whose specialization matches the service
+    const serviceRecord = await Service.findByName(service);
     const targetType = serviceRecord?.employee_type || 'photographer';
-    const employee   = employees.find((e) => e.employee_type === targetType);
-    const recipientEmail = employee?.mail_user || employee?.email;
-    const smtpOverride = employee?.mail_user && employee?.mail_pass
-      ? { mail_host: 'smtp.yandex.ru', mail_port: 465, mail_user: employee.mail_user, mail_pass: employee.mail_pass }
-      : {};
-    sendBookingNotification(booking, recipientEmail, smtpOverride).catch(console.error);
+    const matchingStaff = await User.findTeamByType(targetType, { includeEmail: true, includeMail: true });
+    for (const staff of matchingStaff) {
+      const recipientEmail = staff.mail_user || staff.email;
+      const smtpOverride = staff.mail_user && staff.mail_pass
+        ? { mail_host: 'smtp.yandex.ru', mail_port: 465, mail_user: staff.mail_user, mail_pass: staff.mail_pass }
+        : {};
+      sendBookingNotification(booking, recipientEmail, smtpOverride).catch(console.error);
+    }
 
     // Real-time notification to all connected employee dashboards
     broadcast('new-booking', {
@@ -67,7 +66,7 @@ router.post('/bookings', optionalAuth, async (req, res) => {
       booking_time: booking.booking_time,
     });
 
-    res.status(201).json({ ...result, emailSent: true });
+    res.status(201).json({ ...result, emailSent: matchingStaff.length > 0 });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Внутренняя ошибка сервера' });
@@ -121,7 +120,20 @@ router.put('/bookings/:id/confirm', authenticate, requireRole('admin', 'employee
     const booking = await Booking.findById(id);
     if (!booking) return res.status(404).json({ error: 'Заявка не найдена' });
 
-    sendConfirmationToClient(booking).catch(console.error);
+    // Use the confirming user's SMTP if configured, otherwise find any admin with SMTP
+    let smtpOverride = {};
+    const senderSettings = await User.getMailSettings(req.user.id);
+    if (senderSettings?.mail_user && senderSettings?.mail_pass) {
+      smtpOverride = { mail_host: 'smtp.yandex.ru', mail_port: 465, mail_user: senderSettings.mail_user, mail_pass: senderSettings.mail_pass };
+    } else {
+      const admins = await User.findAllAdmins({ includeMail: true });
+      const withSmtp = admins.find(a => a.mail_user && a.mail_pass);
+      if (withSmtp) {
+        smtpOverride = { mail_host: 'smtp.yandex.ru', mail_port: 465, mail_user: withSmtp.mail_user, mail_pass: withSmtp.mail_pass };
+      }
+    }
+
+    sendConfirmationToClient(booking, smtpOverride).catch(console.error);
 
     res.json({ success: true, clientNotified: !!booking.client_email });
   } catch (err) {
@@ -229,6 +241,37 @@ router.get('/gallery', async (_req, res) => {
   }
 });
 
+// Build the list of feedback/contact recipients with per-user SMTP overrides
+async function buildFeedbackRecipients() {
+  const [admins, employees] = await Promise.all([
+    User.findAllAdmins({ includeEmail: true, includeMail: true }),
+    User.findAllEmployees({ includeEmail: true, includeMail: true }),
+  ]);
+  const manager = employees.find(e => e.employee_type === 'manager');
+  const seen = new Set();
+  const recipients = [];
+  for (const a of admins) {
+    const to = a.mail_user || a.email;
+    if (to && !seen.has(to)) {
+      seen.add(to);
+      const smtp = a.mail_user && a.mail_pass
+        ? { mail_host: 'smtp.yandex.ru', mail_port: 465, mail_user: a.mail_user, mail_pass: a.mail_pass }
+        : {};
+      recipients.push({ email: to, smtp });
+    }
+  }
+  if (manager) {
+    const to = manager.mail_user || manager.email;
+    if (to && !seen.has(to)) {
+      const smtp = manager.mail_user && manager.mail_pass
+        ? { mail_host: 'smtp.yandex.ru', mail_port: 465, mail_user: manager.mail_user, mail_pass: manager.mail_pass }
+        : {};
+      recipients.push({ email: to, smtp });
+    }
+  }
+  return recipients;
+}
+
 // ── Feedback (saves to DB + emails manager) ───────────────────────────
 router.post('/feedback', async (req, res) => {
   try {
@@ -237,9 +280,10 @@ router.post('/feedback', async (req, res) => {
 
     const entry = await Feedback.create({ name, email: email || null, message });
 
-    const employees = await User.findAllEmployees({ includeEmail: true });
-    const manager = employees.find(e => e.employee_type === 'manager') || employees[0];
-    sendFeedbackEmail({ name, email, message }, manager?.email).catch(console.error);
+    const recipients = await buildFeedbackRecipients();
+    for (const { email: to, smtp } of recipients) {
+      sendFeedbackEmail({ name, email, message }, to, smtp).catch(console.error);
+    }
 
     res.status(201).json({ id: entry.id });
   } catch (err) {
@@ -254,9 +298,10 @@ router.post('/contact', async (req, res) => {
     const { name, email, message } = req.body;
     if (!name || !message) return res.status(400).json({ error: 'name и message обязательны' });
 
-    const employees = await User.findAllEmployees({ includeEmail: true });
-    const manager = employees.find(e => e.employee_type === 'manager') || employees[0];
-    sendFeedbackEmail({ name, email, message }, manager?.email).catch(console.error);
+    const recipients = await buildFeedbackRecipients();
+    for (const { email: to, smtp } of recipients) {
+      sendFeedbackEmail({ name, email, message }, to, smtp).catch(console.error);
+    }
 
     res.json({ ok: true });
   } catch (err) {
