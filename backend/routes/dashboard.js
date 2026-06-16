@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const Booking = require('../models/Booking');
 const User = require('../models/User');
 const { authenticate, requireRole } = require('../middleware/auth');
-const { verifySmtp, sendEmail } = require('../utils/email');
+const { verifySmtp, verifyResend, sendEmail } = require('../utils/email');
 const { addClient, removeClient } = require('../utils/sse');
 
 // GET /api/dashboard/stream — SSE for real-time booking notifications
@@ -67,10 +67,38 @@ router.get('/mail-settings', authenticate, requireRole('admin', 'employee'), asy
     res.json({
       mail_user: row?.mail_user || null,
       has_password: !!row?.mail_pass,
+      has_resend: !!row?.resend_api_key,
     });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+});
+
+// ── Resend settings ────────────────────────────────────────────────────
+router.post('/resend-settings', authenticate, requireRole('admin', 'employee'), async (req, res) => {
+  try {
+    const { resend_api_key } = req.body;
+    await User.updateResendKey(req.user.id, resend_api_key || null);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Внутренняя ошибка сервера' });
+  }
+});
+
+router.post('/resend-settings/test', authenticate, requireRole('admin', 'employee'), async (req, res) => {
+  try {
+    const { resend_api_key } = req.body;
+    const existing = await User.getResendKey(req.user.id);
+    const key = resend_api_key || existing;
+    if (!key) return res.status(400).json({ error: 'Введите API-ключ Resend' });
+    await verifyResend(key);
+    await User.updateResendKey(req.user.id, key);
+    res.json({ ok: true, message: 'Resend подключён успешно! Письма будут доставляться через HTTPS.' });
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ error: err.message });
   }
 });
 
@@ -106,7 +134,7 @@ router.post('/mail-settings/test', authenticate, requireRole('admin', 'employee'
       return res.status(400).json({ error: 'Сохраните email и пароль перед проверкой' });
     }
 
-    const override = { mail_host: 'smtp.yandex.ru', mail_port: 465, mail_user: user, mail_pass: pass };
+    const override = { mail_host: 'smtp.yandex.ru', mail_port: 587, mail_user: user, mail_pass: pass };
 
     await verifySmtp(override);
 

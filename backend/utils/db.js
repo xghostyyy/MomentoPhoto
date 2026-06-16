@@ -111,6 +111,7 @@ function initDb() {
         'ALTER TABLE bookings ADD COLUMN booking_date TEXT',
         'ALTER TABLE bookings ADD COLUMN booking_time TEXT',
         "ALTER TABLE bookings ADD COLUMN call_status TEXT NOT NULL DEFAULT 'needed'",
+        'ALTER TABLE users ADD COLUMN resend_api_key TEXT',
       ];
       let pending = migrations.length;
       for (const sql of migrations) {

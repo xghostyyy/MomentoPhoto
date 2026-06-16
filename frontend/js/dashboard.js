@@ -708,8 +708,15 @@ function esc(s) {
 function setMailBadge(connected) {
   const badge = document.getElementById('mail-status-badge');
   if (!badge) return;
-  badge.textContent  = connected ? 'Подключена' : 'Не настроена';
-  badge.className    = connected ? 'mail-badge mail-badge--on' : 'mail-badge mail-badge--off';
+  badge.textContent = connected ? 'Подключена' : 'Не настроена';
+  badge.className   = connected ? 'mail-badge mail-badge--on' : 'mail-badge mail-badge--off';
+}
+
+function setResendBadge(connected) {
+  const badge = document.getElementById('resend-status-badge');
+  if (!badge) return;
+  badge.textContent = connected ? 'Подключён' : 'Не настроен';
+  badge.className   = connected ? 'mail-badge mail-badge--on' : 'mail-badge mail-badge--off';
 }
 
 function setMailMsg(text, isError = false) {
@@ -728,7 +735,48 @@ async function loadMailSettings() {
     if (data.mail_user) userInput.value = data.mail_user;
     passHint.textContent = data.has_password ? 'Пароль сохранён. Оставьте поле пустым, чтобы не менять.' : '';
     setMailBadge(data.mail_user && data.has_password);
+    setResendBadge(data.has_resend);
   } catch { /* ignore */ }
+}
+
+function initResendForm() {
+  const form    = document.getElementById('resend-form');
+  const saveBtn = document.getElementById('resend-save-btn');
+  const toggle  = document.getElementById('resend-key-toggle');
+  const keyInput = document.getElementById('resend-key-input');
+  const msg     = document.getElementById('resend-form-msg');
+  if (!form) return;
+
+  toggle.addEventListener('click', () => {
+    keyInput.type = keyInput.type === 'text' ? 'password' : 'text';
+  });
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Проверяем…';
+    msg.textContent = '';
+    msg.className = 'mail-form-msg';
+    try {
+      const key = keyInput.value.trim();
+      if (!key) { msg.textContent = 'Введите API-ключ'; msg.className = 'mail-form-msg mail-form-msg--error'; return; }
+      const data = await apiFetch('/dashboard/resend-settings/test', {
+        method: 'POST',
+        body: JSON.stringify({ resend_api_key: key }),
+      });
+      msg.textContent = data.message || 'Resend подключён!';
+      msg.className = 'mail-form-msg mail-form-msg--ok';
+      keyInput.value = '';
+      setResendBadge(true);
+      showToast('Resend подключён — письма будут работать!');
+    } catch (err) {
+      msg.textContent = 'Ошибка: ' + err.message;
+      msg.className = 'mail-form-msg mail-form-msg--error';
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = 'Подключить и проверить';
+    }
+  });
 }
 
 function initMailForm() {
@@ -812,6 +860,7 @@ async function setupDashboard(meData) {
   }
 
   initMailForm();
+  initResendForm();
 
   // Request browser notification permission
   if ('Notification' in window && Notification.permission === 'default') {

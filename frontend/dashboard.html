@@ -133,12 +133,49 @@
       <!-- Profile / mail settings tab -->
       <section id="tab-profile" class="tab-content hidden">
         <div class="profile-grid">
+
+          <!-- Resend card (recommended) -->
+          <div class="profile-card profile-card--resend">
+            <div class="profile-card-header">
+              <h2 class="profile-card-title">Resend <span class="badge-recommended">Рекомендуется</span></h2>
+              <span id="resend-status-badge" class="mail-badge mail-badge--off">Не настроен</span>
+            </div>
+            <p class="profile-card-desc">Отправка через HTTPS — работает на любом хостинге. Бесплатно до 3 000 писем/мес.</p>
+            <form id="resend-form" class="mail-form" autocomplete="off">
+              <label class="mail-label">API-ключ Resend
+                <div class="mail-pass-wrap">
+                  <input type="password" id="resend-key-input" class="mail-input" placeholder="re_xxxxxxxxxxxxxxxxxxxx" autocomplete="new-password" />
+                  <button type="button" class="mail-pass-toggle" id="resend-key-toggle" title="Показать/скрыть">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </button>
+                </div>
+              </label>
+              <div class="mail-actions">
+                <button type="submit" class="btn-mail-save" id="resend-save-btn">Подключить и проверить</button>
+              </div>
+              <p id="resend-form-msg" class="mail-form-msg"></p>
+            </form>
+          </div>
+
+          <!-- Resend instructions -->
+          <div class="profile-card profile-card--instructions">
+            <h2 class="profile-card-title">Как получить API-ключ Resend</h2>
+            <p class="profile-card-desc">Resend работает через HTTPS — SMTP-порты не нужны, блокировки провайдера не страшны.</p>
+            <ol class="instruction-steps">
+              <li><span class="step-num">1</span><div><strong>Зарегистрируйтесь на resend.com</strong><p>Бесплатный аккаунт, не нужна кредитная карта.</p></div></li>
+              <li><span class="step-num">2</span><div><strong>Создайте API-ключ</strong><p>Перейдите в <em>API Keys</em> → <em>«Create API Key»</em>. Скопируйте ключ (начинается с <em>re_</em>).</p></div></li>
+              <li><span class="step-num">3</span><div><strong>Вставьте ключ в форму слева</strong><p>Нажмите <em>«Подключить и проверить»</em> — система проверит ключ и сохранит.</p></div></li>
+              <li><span class="step-num">4</span><div><strong>Готово!</strong><p>Уведомления о заявках будут приходить на адрес, указанный в аккаунте Resend.</p></div></li>
+            </ol>
+          </div>
+
+          <!-- Yandex SMTP card (fallback) -->
           <div class="profile-card">
             <div class="profile-card-header">
-              <h2 class="profile-card-title">Почта для уведомлений</h2>
+              <h2 class="profile-card-title">Яндекс SMTP <span class="badge-alt">Альтернатива</span></h2>
               <span id="mail-status-badge" class="mail-badge mail-badge--off">Не настроена</span>
             </div>
-            <p class="profile-card-desc">Подключите личный Яндекс-ящик, и все новые заявки с сайта будут приходить на него.</p>
+            <p class="profile-card-desc">Работает только если хостинг не блокирует исходящий SMTP (порт 587).</p>
             <form id="mail-form" class="mail-form" autocomplete="off">
               <label class="mail-label">Яндекс-адрес
                 <input type="email" id="mail-user" class="mail-input" placeholder="example@yandex.ru" autocomplete="off" />
@@ -147,7 +184,7 @@
                 <div class="mail-pass-wrap">
                   <input type="password" id="mail-pass" class="mail-input" placeholder="••••••••••••••••" autocomplete="new-password" />
                   <button type="button" class="mail-pass-toggle" id="mail-pass-toggle" title="Показать/скрыть">
-                    <svg id="eye-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                   </button>
                 </div>
                 <span class="mail-hint-small" id="pass-hint"></span>
@@ -159,16 +196,7 @@
               <p id="mail-form-msg" class="mail-form-msg"></p>
             </form>
           </div>
-          <div class="profile-card profile-card--instructions">
-            <h2 class="profile-card-title">Как получить пароль приложения</h2>
-            <p class="profile-card-desc">Яндекс требует отдельный пароль для почтовых программ — это не ваш основной пароль от аккаунта.</p>
-            <ol class="instruction-steps">
-              <li><span class="step-num">1</span><div><strong>Включите SMTP в Яндекс.Почте</strong><p>Откройте Яндекс.Почту → <em>Настройки</em> → <em>Почтовые программы</em> → включите IMAP.</p></div></li>
-              <li><span class="step-num">2</span><div><strong>Создайте пароль приложения</strong><p>Перейдите в <em>Яндекс ID</em> → <em>Безопасность</em> → <em>«Пароли приложений»</em>.</p></div></li>
-              <li><span class="step-num">3</span><div><strong>Выберите тип «Почта»</strong><p>Дайте название «Momento», нажмите <em>«Создать»</em> и скопируйте пароль.</p></div></li>
-              <li><span class="step-num">4</span><div><strong>Вставьте данные в форму</strong><p>Введите адрес и пароль слева, нажмите <em>«Сохранить»</em>.</p></div></li>
-            </ol>
-          </div>
+
         </div>
       </section>
     </main>

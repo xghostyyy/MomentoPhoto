@@ -128,7 +128,7 @@ const User = {
   getMailSettings(userId) {
     return new Promise((resolve, reject) => {
       getDb().get(
-        'SELECT mail_user, mail_pass FROM users WHERE id = ?',
+        'SELECT mail_user, mail_pass, resend_api_key FROM users WHERE id = ?',
         [userId],
         (err, row) => { if (err) return reject(err); resolve(row); }
       );
@@ -141,6 +141,39 @@ const User = {
         'UPDATE users SET mail_user = ?, mail_pass = ? WHERE id = ?',
         [mailUser || null, mailPass || null, userId],
         function (err) { if (err) return reject(err); resolve({ changes: this.changes }); }
+      );
+    });
+  },
+
+  getResendKey(userId) {
+    return new Promise((resolve, reject) => {
+      getDb().get(
+        'SELECT resend_api_key FROM users WHERE id = ?',
+        [userId],
+        (err, row) => { if (err) return reject(err); resolve(row?.resend_api_key || null); }
+      );
+    });
+  },
+
+  updateResendKey(userId, key) {
+    return new Promise((resolve, reject) => {
+      getDb().run(
+        'UPDATE users SET resend_api_key = ? WHERE id = ?',
+        [key || null, userId],
+        function (err) { if (err) return reject(err); resolve({ changes: this.changes }); }
+      );
+    });
+  },
+
+  // Returns Resend key from any admin/employee, preferring admin
+  findResendKey() {
+    return new Promise((resolve, reject) => {
+      getDb().get(
+        `SELECT resend_api_key FROM users
+         WHERE resend_api_key IS NOT NULL AND role IN ('admin','employee')
+         ORDER BY CASE role WHEN 'admin' THEN 0 ELSE 1 END LIMIT 1`,
+        [],
+        (err, row) => { if (err) return reject(err); resolve(row?.resend_api_key || null); }
       );
     });
   },
