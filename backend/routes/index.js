@@ -46,19 +46,16 @@ router.post('/bookings', optionalAuth, async (req, res) => {
     const booking = await Booking.findById(result.id);
 
     // Route notification to the employee whose type matches the service
-    const [serviceRecord, employees, resendKey] = await Promise.all([
+    const [serviceRecord, employees] = await Promise.all([
       Service.findByName(service),
       User.findAllEmployees({ includeEmail: true, includeMail: true }),
-      User.findResendKey(),
     ]);
     const targetType = serviceRecord?.employee_type || 'photographer';
     const employee   = employees.find((e) => e.employee_type === targetType);
     const recipientEmail = employee?.mail_user || employee?.email;
-    const smtpOverride = resendKey
-      ? { resend_api_key: resendKey }
-      : (employee?.mail_user && employee?.mail_pass
-          ? { mail_host: 'smtp.yandex.ru', mail_port: 587, mail_user: employee.mail_user, mail_pass: employee.mail_pass }
-          : {});
+    const smtpOverride = employee?.mail_user && employee?.mail_pass
+      ? { mail_host: 'smtp.yandex.ru', mail_port: 465, mail_user: employee.mail_user, mail_pass: employee.mail_pass }
+      : {};
     sendBookingNotification(booking, recipientEmail, smtpOverride).catch(console.error);
 
     // Real-time notification to all connected employee dashboards

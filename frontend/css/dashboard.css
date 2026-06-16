@@ -592,22 +592,6 @@ body {
 .svc-details { font-size: 0.82rem; color: var(--muted); }
 .svc-actions { padding: 10px 16px 14px; display: flex; gap: 8px; flex-wrap: wrap; }
 
-/* ── Resend / provider badges ────────────────────────────────────────── */
-.badge-recommended {
-  display: inline-block; padding: 2px 8px; border-radius: 50px;
-  font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-  background: var(--green-bg); color: var(--green);
-  vertical-align: middle; margin-left: 6px;
-}
-.badge-alt {
-  display: inline-block; padding: 2px 8px; border-radius: 50px;
-  font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
-  background: var(--yellow-bg); color: var(--yellow);
-  vertical-align: middle; margin-left: 6px;
-}
-.profile-card--resend { border-color: var(--green); }
-.profile-grid { grid-template-columns: 1fr 1fr; }
-
 /* ── Call status badges ──────────────────────────────────────────────── */
 .badge-called      { background: var(--green-bg);  color: var(--green);  }
 .badge-call-needed { background: var(--red-bg);    color: var(--red);    }
