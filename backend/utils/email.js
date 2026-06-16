@@ -1,28 +1,38 @@
 const nodemailer = require('nodemailer');
 
-function createTransport() {
-  const { MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS } = process.env;
-  if (!MAIL_HOST || !MAIL_USER || !MAIL_PASS) return null;
-
-  return nodemailer.createTransport({
-    host: MAIL_HOST,
-    port: Number(MAIL_PORT) || 2525,
-    auth: { user: MAIL_USER, pass: MAIL_PASS },
-  });
+function createTransport(override = {}) {
+  const host = override.mail_host || process.env.MAIL_HOST;
+  const port = Number(override.mail_port || process.env.MAIL_PORT) || 465;
+  const user = override.mail_user || process.env.MAIL_USER;
+  const pass = override.mail_pass || process.env.MAIL_PASS;
+  if (!host || !user || !pass) return null;
+  return nodemailer.createTransport({ host, port, secure: port === 465, auth: { user, pass } });
 }
 
-async function sendEmail(to, subject, html) {
-  const transport = createTransport();
+async function sendEmail(to, subject, html, override = {}) {
+  const transport = createTransport(override);
   if (!transport) {
-    console.log(`[email] transport not configured — skipping send to ${to}: ${subject}`);
+    console.warn(`[email] SMTP не настроен — письмо не отправлено. Получатель: ${to}, Тема: ${subject}`);
     return;
   }
-  const from = process.env.MAIL_FROM || `"Momento Studio" <${process.env.MAIL_USER}>`;
-  await transport.sendMail({ from, to, subject, html });
-  console.log(`[email] sent to ${to}: ${subject}`);
+  const senderUser = override.mail_user || process.env.MAIL_USER;
+  const from = `"Momento Studio" <${senderUser}>`;
+  try {
+    const info = await transport.sendMail({ from, to, subject, html });
+    console.log(`[email] отправлено на ${to}: ${subject} (messageId: ${info.messageId})`);
+  } catch (err) {
+    console.error(`[email] ошибка отправки на ${to}: ${err.message}`);
+    throw err;
+  }
 }
 
-async function sendBookingNotification(booking, recipientEmail) {
+async function verifySmtp(override = {}) {
+  const transport = createTransport(override);
+  if (!transport) throw new Error('SMTP не настроен');
+  await transport.verify();
+}
+
+async function sendBookingNotification(booking, recipientEmail, smtpOverride = {}) {
   if (!recipientEmail) {
     console.log(`[email] no recipient found for booking #${booking.id}, service="${booking.service}"`);
     return;
@@ -32,12 +42,11 @@ async function sendBookingNotification(booking, recipientEmail) {
     <table cellpadding="6" style="border-collapse:collapse">
       <tr><td><b>Клиент:</b></td><td>${booking.client_name}</td></tr>
       <tr><td><b>Телефон:</b></td><td>${booking.client_phone}</td></tr>
-      <tr><td><b>Email:</b></td><td>${booking.client_email || '—'}</td></tr>
       <tr><td><b>Услуга:</b></td><td>${booking.service}</td></tr>
     </table>
     <p style="margin-top:16px;color:#888">Войдите в панель для подтверждения заявки.</p>
   `;
-  await sendEmail(recipientEmail, `Новая заявка #${booking.id} — ${booking.service}`, html);
+  await sendEmail(recipientEmail, `Новая заявка #${booking.id} — ${booking.service}`, html, smtpOverride);
 }
 
 async function sendConfirmationToClient(booking) {
@@ -52,22 +61,6 @@ async function sendConfirmationToClient(booking) {
     <p>По вопросам звоните нам. Спасибо, что выбрали Momento!</p>
   `;
   await sendEmail(booking.client_email, `Подтверждение записи — ${booking.service}`, html);
-}
-
-async function sendVerificationCode(to, code, name) {
-  const html = `
-    <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto">
-      <h2 style="color:#b35a36">Подтверждение регистрации</h2>
-      <p>Здравствуйте${name ? ', <b>' + name + '</b>' : ''}!</p>
-      <p>Ваш код подтверждения для входа в Momento:</p>
-      <div style="font-size:34px;font-weight:800;letter-spacing:8px;color:#b35a36;
-                  background:#ffe0cc;border-radius:14px;padding:18px;text-align:center;margin:18px 0">
-        ${code}
-      </div>
-      <p style="color:#999;font-size:13px">Код действует 15 минут. Если вы не регистрировались — просто проигнорируйте это письмо.</p>
-    </div>
-  `;
-  await sendEmail(to, `Код подтверждения Momento: ${code}`, html);
 }
 
 async function sendFeedbackEmail({ name, email, message }, recipientEmail) {
@@ -86,4 +79,4 @@ async function sendFeedbackEmail({ name, email, message }, recipientEmail) {
   await sendEmail(recipientEmail, `Обратная связь от ${name}`, html);
 }
 
-module.exports = { sendEmail, sendBookingNotification, sendConfirmationToClient, sendFeedbackEmail, sendVerificationCode };
+module.exports = { sendEmail, verifySmtp, sendBookingNotification, sendConfirmationToClient, sendFeedbackEmail };

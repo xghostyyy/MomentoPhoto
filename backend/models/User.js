@@ -75,10 +75,12 @@ const User = {
     });
   },
 
-  findAllEmployees({ includeEmail = false } = {}) {
-    const cols = includeEmail
-      ? 'id, email, full_name, employee_type'
-      : 'id, full_name, employee_type';
+  findAllEmployees({ includeEmail = false, includeMail = false } = {}) {
+    const cols = [
+      'id', 'full_name', 'employee_type',
+      ...(includeEmail ? ['email'] : []),
+      ...(includeMail  ? ['mail_user', 'mail_pass'] : []),
+    ].join(', ');
     return new Promise((resolve, reject) => {
       getDb().all(
         `SELECT ${cols} FROM users WHERE role = 'employee'`,
@@ -87,6 +89,58 @@ const User = {
           if (err) return reject(err);
           resolve(rows);
         }
+      );
+    });
+  },
+
+  findTeam() {
+    return new Promise((resolve, reject) => {
+      getDb().all(
+        `SELECT id, full_name, employee_type, role, photo_url
+         FROM users WHERE role IN ('employee', 'admin')
+         ORDER BY CASE WHEN role = 'admin' THEN 0 ELSE 1 END, id ASC`,
+        [],
+        (err, rows) => { if (err) return reject(err); resolve(rows); }
+      );
+    });
+  },
+
+  updateEmployee(id, { full_name, employee_type }) {
+    return new Promise((resolve, reject) => {
+      getDb().run(
+        'UPDATE users SET full_name = ?, employee_type = ? WHERE id = ?',
+        [full_name, employee_type || null, id],
+        function (err) { if (err) return reject(err); resolve({ changes: this.changes }); }
+      );
+    });
+  },
+
+  updatePhoto(id, photo_url) {
+    return new Promise((resolve, reject) => {
+      getDb().run(
+        'UPDATE users SET photo_url = ? WHERE id = ?',
+        [photo_url, id],
+        function (err) { if (err) return reject(err); resolve({ changes: this.changes }); }
+      );
+    });
+  },
+
+  getMailSettings(userId) {
+    return new Promise((resolve, reject) => {
+      getDb().get(
+        'SELECT mail_user, mail_pass FROM users WHERE id = ?',
+        [userId],
+        (err, row) => { if (err) return reject(err); resolve(row); }
+      );
+    });
+  },
+
+  updateMailSettings(userId, mailUser, mailPass) {
+    return new Promise((resolve, reject) => {
+      getDb().run(
+        'UPDATE users SET mail_user = ?, mail_pass = ? WHERE id = ?',
+        [mailUser || null, mailPass || null, userId],
+        function (err) { if (err) return reject(err); resolve({ changes: this.changes }); }
       );
     });
   },

@@ -90,11 +90,27 @@ function initDb() {
         )
       `);
 
+      database.run(`
+        CREATE TABLE IF NOT EXISTS gallery_photos (
+          id         INTEGER PRIMARY KEY AUTOINCREMENT,
+          url        TEXT NOT NULL,
+          caption    TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+      `);
+
       // Migrations
       const migrations = [
         "ALTER TABLE services ADD COLUMN employee_type TEXT NOT NULL DEFAULT 'photographer'",
         'ALTER TABLE bookings ADD COLUMN client_email TEXT',
         "ALTER TABLE reviews ADD COLUMN created_at TEXT NOT NULL DEFAULT (datetime('now'))",
+        'ALTER TABLE users ADD COLUMN mail_user TEXT',
+        'ALTER TABLE users ADD COLUMN mail_pass TEXT',
+        'ALTER TABLE users ADD COLUMN photo_url TEXT',
+        'ALTER TABLE services ADD COLUMN photo_url TEXT',
+        'ALTER TABLE bookings ADD COLUMN booking_date TEXT',
+        'ALTER TABLE bookings ADD COLUMN booking_time TEXT',
+        "ALTER TABLE bookings ADD COLUMN call_status TEXT NOT NULL DEFAULT 'needed'",
       ];
       let pending = migrations.length;
       for (const sql of migrations) {

@@ -75,7 +75,6 @@ function clearSession() {
 function updateAuthUI() {
   const session = getSession();
   const greeting  = document.getElementById('user-greeting');
-  const authBtn   = document.getElementById('auth-btn');
   const logoutBtn = document.getElementById('logout-btn');
   const dashLink  = document.getElementById('dashboard-link');
   const rfWrap    = document.getElementById('review-form-wrap');
@@ -83,7 +82,6 @@ function updateAuthUI() {
   if (session) {
     greeting.textContent = `Привет, ${session.fullName}`;
     greeting.classList.remove('hidden');
-    authBtn.classList.add('hidden');
     logoutBtn.classList.remove('hidden');
     dashLink.classList.toggle('hidden', !(session.role === 'admin' || session.role === 'employee'));
     if (session.role === 'client') loadReviewForm();
@@ -91,7 +89,6 @@ function updateAuthUI() {
     if (fbName && !fbName.value) fbName.value = session.fullName;
   } else {
     greeting.classList.add('hidden');
-    authBtn.classList.remove('hidden');
     logoutBtn.classList.add('hidden');
     dashLink.classList.add('hidden');
     if (rfWrap) rfWrap.classList.add('hidden');
@@ -212,125 +209,40 @@ function uPhoto(id, caption) {
   };
 }
 
-/* ── Auth modal (login + 2-step register) ────────────────────────────── */
-let pendingReg = null; // { email, password, fullName }
-
+/* ── Auth (logout only — login moved to /dashboard) ─────────────────── */
 function initAuthModal() {
-  const modal     = document.getElementById('auth-modal');
-  const openBtn   = document.getElementById('auth-btn');
-  const closeBtn  = document.getElementById('auth-modal-close');
   const logoutBtn = document.getElementById('logout-btn');
-
-  const loginForm    = document.getElementById('login-form');
-  const registerForm = document.getElementById('register-form');
-  const verifyForm   = document.getElementById('verify-form');
-
-  function showForm(which) {
-    loginForm.classList.toggle('hidden', which !== 'login');
-    registerForm.classList.toggle('hidden', which !== 'register');
-    verifyForm.classList.toggle('hidden', which !== 'verify');
-  }
-  function switchTab(name) {
-    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
-    showForm(name);
-  }
-  function openModal(tab) { modal.classList.remove('hidden'); switchTab(tab || 'login'); }
-  function closeModal()   { modal.classList.add('hidden'); }
-
-  openBtn.addEventListener('click',  () => openModal('login'));
-  closeBtn.addEventListener('click', closeModal);
-  logoutBtn.addEventListener('click', () => { clearSession(); showToast('Вы вышли из системы'); });
-  modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
-
-  // Login
-  loginForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const msg = document.getElementById('login-msg');
-    msg.className = 'form-msg';
-    try {
-      const data = await apiFetch('/login', {
-        method: 'POST',
-        body: JSON.stringify({
-          email:    document.getElementById('login-email').value.trim(),
-          password: document.getElementById('login-password').value,
-        }),
-      });
-      saveSession({ token: data.token, fullName: data.fullName, role: data.role });
-      closeModal();
-      loginForm.reset();
-      showToast(`Добро пожаловать, ${data.fullName}!`);
-    } catch (err) {
-      msg.textContent = err.message;
-      msg.className = 'form-msg error';
-    }
-  });
-
-  // Register step 1 → request code
-  async function requestCode() {
-    pendingReg = {
-      fullName: document.getElementById('reg-name').value.trim(),
-      email:    document.getElementById('reg-email').value.trim(),
-      password: document.getElementById('reg-password').value,
-    };
-    await apiFetch('/register', { method: 'POST', body: JSON.stringify(pendingReg) });
-    document.getElementById('verify-email').textContent = pendingReg.email;
-    document.getElementById('verify-code').value = '';
-    document.getElementById('verify-msg').textContent = '';
-    showForm('verify');
-  }
-
-  registerForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const msg = document.getElementById('register-msg');
-    msg.className = 'form-msg';
-    try {
-      await requestCode();
-      showToast('Код отправлен на вашу почту');
-    } catch (err) {
-      msg.textContent = err.message;
-      msg.className = 'form-msg error';
-    }
-  });
-
-  // Register step 2 → verify code
-  verifyForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const msg = document.getElementById('verify-msg');
-    msg.className = 'form-msg';
-    try {
-      const data = await apiFetch('/verify-code', {
-        method: 'POST',
-        body: JSON.stringify({ email: pendingReg.email, code: document.getElementById('verify-code').value.trim() }),
-      });
-      saveSession({ token: data.token, fullName: data.fullName, role: data.role });
-      closeModal();
-      registerForm.reset();
-      verifyForm.reset();
-      pendingReg = null;
-      showToast('Регистрация завершена. Добро пожаловать!');
-    } catch (err) {
-      msg.textContent = err.message;
-      msg.className = 'form-msg error';
-    }
-  });
-
-  document.getElementById('verify-resend').addEventListener('click', async () => {
-    const msg = document.getElementById('verify-msg');
-    msg.className = 'form-msg';
-    try { await requestCode(); showToast('Новый код отправлен'); }
-    catch (err) { msg.textContent = err.message; msg.className = 'form-msg error'; }
-  });
-  document.getElementById('verify-back').addEventListener('click', () => switchTab('register'));
+  if (logoutBtn) logoutBtn.addEventListener('click', () => { clearSession(); showToast('Вы вышли из системы'); });
 }
 
 /* ── Booking modal ───────────────────────────────────────────────────── */
+function populateTimeSlots() {
+  const sel = document.getElementById('booking_time');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">Выберите время</option>';
+  for (let h = 9; h <= 20; h++) {
+    ['00', '30'].forEach(m => {
+      if (h === 20 && m === '30') return;
+      const val = `${String(h).padStart(2, '0')}:${m}`;
+      sel.innerHTML += `<option value="${val}">${val}</option>`;
+    });
+  }
+}
+
 function initBookingModal() {
   const modal    = document.getElementById('booking-modal');
   const closeBtn = document.getElementById('booking-modal-close');
   const fab      = document.getElementById('fab');
   const heroCta  = document.getElementById('hero-cta');
   const aboutCta = document.getElementById('about-cta');
+
+  // Set min date to today
+  const dateInput = document.getElementById('booking_date');
+  if (dateInput) {
+    const today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+  }
+  populateTimeSlots();
 
   function openModal() {
     modal.classList.remove('hidden');
@@ -348,19 +260,26 @@ function initBookingModal() {
 
   document.getElementById('booking-form').addEventListener('submit', async e => {
     e.preventDefault();
-    const msg = document.getElementById('booking-msg');
+    const msg  = document.getElementById('booking-msg');
     msg.className = 'form-msg';
     const name  = document.getElementById('client_name').value.trim();
     const phone = document.getElementById('client_phone').value.trim();
     const svc   = document.getElementById('service').value;
+    const date  = document.getElementById('booking_date').value;
+    const time  = document.getElementById('booking_time').value;
     if (!name)  { msg.textContent = 'Введите ваше имя'; msg.className = 'form-msg error'; return; }
     if (!validatePhone(phone)) { msg.textContent = 'Введите телефон: +7 (999) 000-00-00'; msg.className = 'form-msg error'; return; }
     if (!svc)   { msg.textContent = 'Выберите услугу'; msg.className = 'form-msg error'; return; }
+    if (!date)  { msg.textContent = 'Укажите желаемую дату'; msg.className = 'form-msg error'; return; }
+    if (!time)  { msg.textContent = 'Укажите желаемое время'; msg.className = 'form-msg error'; return; }
     try {
-      await apiFetch('/bookings', { method: 'POST', body: JSON.stringify({ client_name: name, client_phone: phone, service: svc }) });
+      await apiFetch('/bookings', {
+        method: 'POST',
+        body: JSON.stringify({ client_name: name, client_phone: phone, service: svc, booking_date: date, booking_time: time }),
+      });
       closeModal();
       e.target.reset();
-      showToast('Заявка принята! Ожидайте подтверждения на email.');
+      showToast('Заявка принята! Менеджер позвонит вам для уточнения времени.');
     } catch (err) {
       msg.textContent = err.message;
       msg.className = 'form-msg error';
@@ -423,15 +342,20 @@ async function loadServices() {
     grid.innerHTML = '';
     services.forEach(s => {
       const card = document.createElement('div');
-      card.className = 'service-card';
+      card.className = `service-card${s.photo_url ? ' service-card--has-photo' : ''}`;
       card.innerHTML = `
-        <div class="service-icon">${icon(SERVICE_ICONS[s.name] || ICON.camera, 30)}</div>
-        <h3>${esc(s.name)}</h3>
-        <div class="service-price">${s.price.toLocaleString('ru-RU')} ₽</div>
-        <div class="service-duration">${icon(ICON.clock, 14)} ${s.duration} мин</div>
-        <div class="service-actions">
-          <button class="btn btn--sm book-btn">Записаться</button>
-          <button class="btn btn--sm btn--outline service-examples-btn">Примеры работ</button>
+        ${s.photo_url
+          ? `<div class="service-photo-wrap"><img class="service-photo" src="${esc(s.photo_url)}" alt="${esc(s.name)}" loading="lazy" /></div>`
+          : `<div class="service-icon">${icon(SERVICE_ICONS[s.name] || ICON.camera, 30)}</div>`
+        }
+        <div class="service-body">
+          <h3>${esc(s.name)}</h3>
+          <div class="service-price">${s.price.toLocaleString('ru-RU')} ₽</div>
+          <div class="service-duration">${icon(ICON.clock, 14)} ${s.duration} мин</div>
+          <div class="service-actions">
+            <button class="btn btn--sm book-btn">Записаться</button>
+            <button class="btn btn--sm btn--outline service-examples-btn">Примеры работ</button>
+          </div>
         </div>`;
       card.querySelector('.book-btn').addEventListener('click', () => window.openBookingForService(s.name));
       card.querySelector('.service-examples-btn').addEventListener('click', () => {
@@ -446,18 +370,18 @@ async function loadServices() {
   }
 }
 
-/* ── Team 3D portrait carousel ───────────────────────────────────────── */
-const ROLE_LABELS = { photographer: 'Фотограф', manager: 'Менеджер', admin: 'Администратор', stylist: 'Стилист', retoucher: 'Ретушёр' };
-const TEAM_PHOTOS = [
-  '1500648767791-00dcc994a43e',
-  '1494790108377-be9c29b29330',
-  '1507003211169-0a1dd7228f2d',
-  '1438761681033-6461ffad8d80',
-  '1472099645785-5658abf4ff4e',
-  '1544005313-94ddf0286df2',
-  '1519345182560-3f2917c472ef',
-  '1573497019940-1c28c88b4f3e',
-];
+/* ── Team portrait carousel ──────────────────────────────────────────── */
+const ROLE_LABELS = {
+  photographer: 'Фотограф', manager: 'Менеджер', admin: 'Директор',
+  stylist: 'Стилист', retoucher: 'Ретушёр', employee: 'Сотрудник',
+};
+
+function teamPhotoSrc(member) {
+  if (member.photo_url) return member.photo_url;
+  const seed = encodeURIComponent(member.full_name);
+  return `https://api.dicebear.com/9.x/notionists/svg?seed=${seed}&size=400`;
+}
+
 let teamCards = [];
 let teamActive = 0;
 
@@ -467,21 +391,32 @@ async function loadTeam() {
     const team = await apiFetch('/team');
     if (!team.length) { carousel.innerHTML = '<p class="loading-text">Команда скоро появится</p>'; return; }
     carousel.innerHTML = '';
+
+    // Move admin to the middle of the array so people appear on both sides
+    const adminIdx = team.findIndex(m => m.role === 'admin');
+    if (adminIdx >= 0) {
+      const [admin] = team.splice(adminIdx, 1);
+      team.splice(Math.floor(team.length / 2), 0, admin);
+    }
+    teamActive = team.findIndex(m => m.role === 'admin');
+    if (teamActive < 0) teamActive = Math.floor(team.length / 2);
+
     teamCards = team.map((m, i) => {
-      const photo = TEAM_PHOTOS[i % TEAM_PHOTOS.length];
+      const isAdmin = m.role === 'admin';
+      const roleLabel = isAdmin ? 'Директор' : (ROLE_LABELS[m.employee_type] || 'Сотрудник');
       const card = document.createElement('div');
       card.className = 'carousel-card';
       card.innerHTML = `
-        <img class="carousel-photo" src="https://images.unsplash.com/photo-${photo}?w=560&h=800&fit=crop&crop=faces&q=80" alt="${esc(m.full_name)}" />
+        <img class="carousel-photo" src="${teamPhotoSrc(m)}" alt="${esc(m.full_name)}" />
         <div class="carousel-caption">
           <div class="carousel-name">${esc(m.full_name)}</div>
-          <span class="carousel-role">${esc(ROLE_LABELS[m.employee_type] || m.employee_type || 'Сотрудник')}</span>
+          <span class="carousel-role${isAdmin ? ' carousel-role--director' : ''}">${esc(roleLabel)}</span>
         </div>`;
       card.addEventListener('click', () => { if (i !== teamActive) { teamActive = i; layoutCarousel(); } });
       carousel.appendChild(card);
       return card;
     });
-    teamActive = Math.floor(team.length / 2);
+
     layoutCarousel();
     document.getElementById('team-prev').addEventListener('click', () => moveCarousel(-1));
     document.getElementById('team-next').addEventListener('click', () => moveCarousel(1));
@@ -493,9 +428,9 @@ async function loadTeam() {
 
 function carouselSettings() {
   const w = window.innerWidth;
-  if (w < 640) return { maxVisible: 1, spacing: 105, rot: 22 };
-  if (w < 960) return { maxVisible: 1, spacing: 150, rot: 26 };
-  return { maxVisible: 2, spacing: 165, rot: 30 };
+  if (w < 640) return { maxVisible: 1, spacing: 120, rot: 22 };
+  if (w < 960) return { maxVisible: 1, spacing: 170, rot: 26 };
+  return             { maxVisible: 2, spacing: 200, rot: 30 };
 }
 
 function layoutCarousel() {
@@ -520,6 +455,7 @@ function layoutCarousel() {
     card.classList.toggle('is-center', offset === 0);
   });
 }
+
 function moveCarousel(dir) {
   teamActive = Math.min(teamCards.length - 1, Math.max(0, teamActive + dir));
   layoutCarousel();
@@ -544,16 +480,31 @@ const galleryImages = [
 ];
 const GALLERY_LAYOUT = ['tall', '', '', 'wide', '', 'tall', '', '', 'wide', '', 'tall', '', '', ''];
 
-function loadGallery() {
+async function loadGallery() {
   const grid = document.getElementById('gallery-grid');
-  grid.innerHTML = '';
-  galleryImages.forEach((img, i) => {
-    const cell = document.createElement('div');
-    cell.className = `gallery-cell ${GALLERY_LAYOUT[i] || ''}`.trim();
-    cell.innerHTML = `<img src="${img.thumb}" alt="${esc(img.caption)}" loading="lazy" />`;
-    cell.addEventListener('click', () => openLightbox(galleryImages, i));
-    grid.appendChild(cell);
-  });
+  try {
+    const photos = await apiFetch('/gallery');
+    const images = photos && photos.length
+      ? photos.map(p => ({ thumb: p.url, full: p.url, caption: p.caption || '' }))
+      : galleryImages;
+    grid.innerHTML = '';
+    images.forEach((img, i) => {
+      const cell = document.createElement('div');
+      cell.className = `gallery-cell ${GALLERY_LAYOUT[i % GALLERY_LAYOUT.length] || ''}`.trim();
+      cell.innerHTML = `<img src="${img.thumb}" alt="${esc(img.caption)}" loading="lazy" />`;
+      cell.addEventListener('click', () => openLightbox(images, i));
+      grid.appendChild(cell);
+    });
+  } catch {
+    grid.innerHTML = '';
+    galleryImages.forEach((img, i) => {
+      const cell = document.createElement('div');
+      cell.className = `gallery-cell ${GALLERY_LAYOUT[i] || ''}`.trim();
+      cell.innerHTML = `<img src="${img.thumb}" alt="${esc(img.caption)}" loading="lazy" />`;
+      cell.addEventListener('click', () => openLightbox(galleryImages, i));
+      grid.appendChild(cell);
+    });
+  }
 }
 
 /* ── Reviews slider ──────────────────────────────────────────────────── */

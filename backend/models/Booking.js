@@ -1,12 +1,12 @@
 const { getDb } = require('../utils/db');
 
 const Booking = {
-  create({ client_name, client_phone, service, employee_id = null, client_email = null }) {
+  create({ client_name, client_phone, service, employee_id = null, client_email = null, booking_date = null, booking_time = null }) {
     return new Promise((resolve, reject) => {
       getDb().run(
-        `INSERT INTO bookings (client_name, client_phone, service, employee_id, client_email)
-         VALUES (?, ?, ?, ?, ?)`,
-        [client_name, client_phone, service, employee_id, client_email],
+        `INSERT INTO bookings (client_name, client_phone, service, employee_id, client_email, booking_date, booking_time)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [client_name, client_phone, service, employee_id, client_email, booking_date, booking_time],
         function (err) {
           if (err) return reject(err);
           resolve({ id: this.lastID });
@@ -100,6 +100,19 @@ const Booking = {
       getDb().run(
         'UPDATE bookings SET status = ? WHERE id = ?',
         [status, id],
+        function (err) {
+          if (err) return reject(err);
+          resolve({ changes: this.changes });
+        }
+      );
+    });
+  },
+
+  updateCallStatus(id, call_status) {
+    return new Promise((resolve, reject) => {
+      getDb().run(
+        'UPDATE bookings SET call_status = ? WHERE id = ?',
+        [call_status, id],
         function (err) {
           if (err) return reject(err);
           resolve({ changes: this.changes });

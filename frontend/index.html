@@ -11,50 +11,30 @@
   <!-- Toast container -->
   <div id="toast-container"></div>
 
-  <!-- Auth modal -->
-  <div id="auth-modal" class="modal-overlay hidden">
-    <div class="modal-box">
-      <button class="modal-close" id="auth-modal-close">&times;</button>
-      <div class="tabs">
-        <button class="tab active" data-tab="login">Войти</button>
-        <button class="tab" data-tab="register">Регистрация</button>
-      </div>
-      <form id="login-form" class="form">
-        <input type="email"    id="login-email"    placeholder="Email"  required />
-        <input type="password" id="login-password" placeholder="Пароль" required />
-        <button type="submit" class="btn btn--full">Войти</button>
-        <p id="login-msg" class="form-msg"></p>
-      </form>
-      <form id="register-form" class="form hidden">
-        <input type="text"     id="reg-name"     placeholder="Ваше имя" required />
-        <input type="email"    id="reg-email"    placeholder="Email"     required />
-        <input type="password" id="reg-password" placeholder="Пароль (мин. 6 символов)" minlength="6" required />
-        <button type="submit" class="btn btn--full">Получить код</button>
-        <p id="register-msg" class="form-msg"></p>
-      </form>
-      <form id="verify-form" class="form hidden">
-        <p class="verify-hint">Мы отправили 6-значный код на<br><b id="verify-email"></b></p>
-        <input type="text" id="verify-code" class="code-input" placeholder="000000"
-               inputmode="numeric" autocomplete="one-time-code" maxlength="6" required />
-        <button type="submit" class="btn btn--full">Подтвердить</button>
-        <button type="button" id="verify-resend" class="link-btn">Отправить код заново</button>
-        <button type="button" id="verify-back"   class="link-btn">← Изменить данные</button>
-        <p id="verify-msg" class="form-msg"></p>
-      </form>
-    </div>
-  </div>
-
   <!-- Booking modal -->
   <div id="booking-modal" class="modal-overlay hidden">
     <div class="modal-box">
       <button class="modal-close" id="booking-modal-close">&times;</button>
       <h3 class="modal-title">Записаться на съёмку</h3>
+      <p class="modal-sub">После заявки наш менеджер позвонит и уточнит удобное время</p>
       <form id="booking-form" class="form">
         <input type="text" id="client_name"  placeholder="Ваше имя"           required />
         <input type="tel"  id="client_phone" placeholder="+7 (999) 000-00-00" required />
         <select id="service" required>
           <option value="">Выберите услугу</option>
         </select>
+        <div class="form-row">
+          <label class="form-field">
+            <span class="form-field-label">Желаемая дата</span>
+            <input type="date" id="booking_date" required />
+          </label>
+          <label class="form-field">
+            <span class="form-field-label">Желаемое время</span>
+            <select id="booking_time" required>
+              <option value="">Выберите время</option>
+            </select>
+          </label>
+        </div>
         <button type="submit" class="btn btn--full">Отправить заявку</button>
         <p id="booking-msg" class="form-msg"></p>
       </form>
@@ -88,7 +68,6 @@
       <div class="header-auth">
         <span id="user-greeting" class="user-greeting hidden"></span>
         <a id="dashboard-link" href="/dashboard" class="btn btn--sm btn--outline hidden">Дашборд</a>
-        <button id="auth-btn"    class="btn btn--sm">Войти</button>
         <button id="logout-btn"  class="btn btn--sm btn--outline hidden">Выйти</button>
       </div>
       <button class="burger" id="burger" aria-label="Меню">&#9776;</button>
